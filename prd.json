@@ -64,7 +64,7 @@
       "title": "weather_client",
       "description": "Create src/data/collectors/weather.py. Fetch hourly historical weather from Open-Meteo /archive endpoint for London (51.5,-0.1), Manchester (53.5,-2.2), Edinburgh (55.9,-3.2). Params: temperature_2m, wind_speed_10m, shortwave_radiation. Return long-format DataFrame with cols [city, timestamp, temperature, wind_speed, radiation].",
       "acceptance_criteria": "tests/data/test_weather.py: mock HTTP → DataFrame with 3 cities, correct column names, timestamp as datetime",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
