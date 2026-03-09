@@ -6,3 +6,5 @@ Started: (not yet started)
 ---
 
 (No iterations completed yet. Run ralph-once.sh to begin.)
+
+[2026-03-09] [0.1] project_scaffold: Created energy-forecasting/ directory structure, pyproject.toml, pytest.ini, .gitignore, and __init__.py files for all src/ and tests/ packages.

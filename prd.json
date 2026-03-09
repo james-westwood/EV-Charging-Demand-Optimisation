@@ -10,7 +10,7 @@
       "title": "project_scaffold",
       "description": "Create directory structure, pyproject.toml with uv, .gitignore, pytest.ini. Directories: src/data/collectors/, src/data/validators/, src/features/, src/models/forecasting/, src/models/ev_behaviour/, src/optimiser/, src/api/, tests/fixtures/, tests/data/, tests/features/, tests/models/, tests/optimiser/, data/raw/carbon_intensity/, data/raw/generation_mix/, data/raw/weather/, data/raw/ev_sessions/, data/features/, saved_models/. Add __init__.py to all src/ and tests/ packages.",
       "acceptance_criteria": "pytest --collect-only exits 0 with no import errors",
-      "completed": false,
+      "completed": true,
       "priority": 1
     },
     {

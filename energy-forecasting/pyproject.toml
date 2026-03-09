@@ -1,0 +1,34 @@
+[project]
+name = "energy-forecasting"
+version = "0.1.0"
+description = "EV Charging Demand Optimisation — Local ML Pipeline"
+requires-python = ">=3.11"
+dependencies = [
+    "lightgbm>=4.0",
+    "duckdb>=0.9",
+    "pandas>=2.0",
+    "pyarrow>=14.0",
+    "scikit-learn>=1.3",
+    "shap>=0.44",
+    "fastapi>=0.104",
+    "uvicorn>=0.24",
+    "httpx>=0.25",
+    "pytest>=7.4",
+    "pytest-asyncio>=0.23",
+    "workalendar>=17.0",
+    "pulp>=2.7",
+    "scipy>=1.11",
+    "numpy>=1.26",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v"
