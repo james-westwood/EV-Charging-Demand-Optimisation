@@ -1,0 +1,494 @@
+{
+  "project": "EV Charging Demand Optimisation — Local ML MVP",
+  "description": "Local ML pipeline: pull historical data from free public APIs, engineer features, train LightGBM quantile models, build a GMM EV behaviour model, implement an LP charging optimiser, and expose via a local FastAPI server.",
+  "target_dir": "energy-forecasting",
+  "quality_checks": ["pytest tests/ -v", "python -m py_compile src/**/*.py"],
+  "tasks": [
+    {
+      "id": "0.1",
+      "epic": "EPIC 0 — Project Setup",
+      "title": "project_scaffold",
+      "description": "Create directory structure, pyproject.toml with uv, .gitignore, pytest.ini. Directories: src/data/collectors/, src/data/validators/, src/features/, src/models/forecasting/, src/models/ev_behaviour/, src/optimiser/, src/api/, tests/fixtures/, tests/data/, tests/features/, tests/models/, tests/optimiser/, data/raw/carbon_intensity/, data/raw/generation_mix/, data/raw/weather/, data/raw/ev_sessions/, data/features/, saved_models/. Add __init__.py to all src/ and tests/ packages.",
+      "acceptance_criteria": "pytest --collect-only exits 0 with no import errors",
+      "completed": false,
+      "priority": 1
+    },
+    {
+      "id": "0.2",
+      "epic": "EPIC 0 — Project Setup",
+      "title": "dependencies",
+      "description": "Add all dependencies to pyproject.toml: lightgbm, duckdb, pandas, pyarrow, scikit-learn, shap, fastapi, uvicorn, httpx, pytest, pytest-asyncio, workalendar, pulp, scipy, numpy. Run 'uv sync' to install. Create tests/test_imports.py that imports each package.",
+      "acceptance_criteria": "tests/test_imports.py passes — all packages import without error",
+      "completed": false,
+      "priority": 1
+    },
+    {
+      "id": "0.3",
+      "epic": "EPIC 0 — Project Setup",
+      "title": "logging_config",
+      "description": "Create src/logging_config.py with structured JSON logging. Log level read from LOG_LEVEL env var (default INFO). Exports get_logger(name) function. JSON format must include 'level', 'message', 'timestamp' keys.",
+      "acceptance_criteria": "tests/test_logging.py: logger emits JSON with level, message, timestamp keys; setting LOG_LEVEL=DEBUG enables debug messages",
+      "completed": false,
+      "priority": 1
+    },
+    {
+      "id": "0.4",
+      "epic": "EPIC 0 — Project Setup",
+      "title": "fixtures",
+      "description": "Create minimal test fixtures in tests/fixtures/. For each data type create a 10-row Parquet file and matching JSON: carbon_intensity.parquet (cols: settlement_period, intensity_actual, intensity_forecast), generation_mix.parquet (cols: settlement_period, gas, coal, nuclear, wind, hydro, imports, biomass, other, solar), weather.parquet (cols: city, timestamp, temperature, wind_speed, radiation), ev_sessions.parquet (cols: session_id, station_id, arrival_time, departure_time, energy_kwh). Add conftest.py that exposes each as a pytest fixture.",
+      "acceptance_criteria": "All fixture Parquet files loadable via pd.read_parquet(); conftest.py fixtures importable in tests",
+      "completed": false,
+      "priority": 1
+    },
+    {
+      "id": "1.1",
+      "epic": "EPIC 1 — Data Acquisition",
+      "title": "carbon_intensity_client",
+      "description": "Create src/data/collectors/carbon_intensity.py. Fetch carbon intensity (gCO2/kWh) for arbitrary date range from api.carbonintensity.org.uk/intensity/{from}/{to}. Return DataFrame with cols [settlement_period, intensity_actual, intensity_forecast]. settlement_period is a datetime. Use httpx for HTTP. Accept from_dt, to_dt as datetime params.",
+      "acceptance_criteria": "tests/data/test_carbon_intensity.py: mock HTTP with fixture response → DataFrame with correct columns and dtypes",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "1.2",
+      "epic": "EPIC 1 — Data Acquisition",
+      "title": "generation_mix_client",
+      "description": "Create src/data/collectors/generation_mix.py. Fetch half-hourly generation mix for date range from api.carbonintensity.org.uk/generation/{from}/{to}. Return DataFrame with cols [settlement_period, gas, coal, nuclear, wind, hydro, imports, biomass, other, solar]. All generation values in MW.",
+      "acceptance_criteria": "tests/data/test_generation_mix.py: mock HTTP with fixture response → DataFrame with all 10 columns, numeric dtypes",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "1.3",
+      "epic": "EPIC 1 — Data Acquisition",
+      "title": "weather_client",
+      "description": "Create src/data/collectors/weather.py. Fetch hourly historical weather from Open-Meteo /archive endpoint for London (51.5,-0.1), Manchester (53.5,-2.2), Edinburgh (55.9,-3.2). Params: temperature_2m, wind_speed_10m, shortwave_radiation. Return long-format DataFrame with cols [city, timestamp, temperature, wind_speed, radiation].",
+      "acceptance_criteria": "tests/data/test_weather.py: mock HTTP → DataFrame with 3 cities, correct column names, timestamp as datetime",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "1.4",
+      "epic": "EPIC 1 — Data Acquisition",
+      "title": "acn_data_loader",
+      "description": "Create src/data/collectors/acn_loader.py. Load Caltech ACN-Data CSV from local path, parse to DataFrame with normalised cols [session_id, station_id, arrival_time, departure_time, energy_kwh]. arrival_time/departure_time as datetime. Also add src/data/collectors/acn_download.py with instructions for manual download from ev.caltech.edu (print URL and instructions, do not auto-download).",
+      "acceptance_criteria": "tests/data/test_acn_loader.py: given fixture CSV → DataFrame with correct cols and dtypes; arrival_time < departure_time for all rows",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "1.5",
+      "epic": "EPIC 1 — Data Acquisition",
+      "title": "retry_decorator",
+      "description": "Create src/data/collectors/retry.py. Implement exponential backoff decorator: max 3 retries, sleep 2^n seconds (mocked in tests), raises original exception after exhaustion. Works on sync functions. Use functools.wraps.",
+      "acceptance_criteria": "tests/data/test_retry.py: mock endpoint failing twice then succeeding → called 3 times total; failing 3 times → raises exception after 3 calls",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "1.6",
+      "epic": "EPIC 1 — Data Acquisition",
+      "title": "incremental_fetch",
+      "description": "Create src/data/collectors/incremental.py. Given existing Parquet file with settlement_period column, detect covered date range, compute missing date ranges, return list of (from_dt, to_dt) tuples for missing ranges only. If no existing file, return full range.",
+      "acceptance_criteria": "tests/data/test_incremental.py: Parquet covering Jan → request Jan–Mar → only Feb–Mar returned as missing ranges",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "1.7",
+      "epic": "EPIC 1 — Data Acquisition",
+      "title": "save_raw_parquet",
+      "description": "Create src/data/collectors/storage.py. Write DataFrame to data/raw/{source}/{YYYY-MM-DD}.parquet. If file exists, load, append new rows, deduplicate on settlement_period, write back. Create directory if needed.",
+      "acceptance_criteria": "tests/data/test_storage.py: write 10 rows twice → file contains 20 unique rows (no duplicates on settlement_period)",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "2.1",
+      "epic": "EPIC 2 — Data Validation",
+      "title": "validate_carbon_intensity",
+      "description": "Create src/data/validators/carbon_intensity.py. Validate: intensity values 0–800, no null settlement_periods, 30-min intervals between consecutive rows, no duplicate timestamps. Raise ValidationError (custom exception in src/data/validators/exceptions.py) with field name on first failure.",
+      "acceptance_criteria": "tests/data/test_validate_carbon.py: DataFrame with intensity=999 → ValidationError raised naming the field",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "2.2",
+      "epic": "EPIC 2 — Data Validation",
+      "title": "validate_generation_mix",
+      "description": "Create src/data/validators/generation_mix.py. Validate: all fuel columns ≥ 0, row sums within 95–105% of stated total (or within 5% of row max if no total col), no missing timestamps. Raise ValidationError with field name.",
+      "acceptance_criteria": "tests/data/test_validate_generation.py: row with wind=-5 → ValidationError naming 'wind'",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "2.3",
+      "epic": "EPIC 2 — Data Validation",
+      "title": "validate_weather",
+      "description": "Create src/data/validators/weather.py. Validate: temperature −30 to 50°C, wind_speed 0–150 km/h, radiation ≥ 0, all 3 cities (London, Manchester, Edinburgh) present per timestamp. Raise ValidationError.",
+      "acceptance_criteria": "tests/data/test_validate_weather.py: row with temperature=999 → ValidationError; missing city → ValidationError",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "2.4",
+      "epic": "EPIC 2 — Data Validation",
+      "title": "validate_ev_sessions",
+      "description": "Create src/data/validators/ev_sessions.py. Validate: energy_kwh > 0, departure_time > arrival_time, duration > 0, no null station_ids. Raise ValidationError.",
+      "acceptance_criteria": "tests/data/test_validate_ev.py: session with departure < arrival → ValidationError",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "2.5",
+      "epic": "EPIC 2 — Data Validation",
+      "title": "validation_report",
+      "description": "Create src/data/validators/report.py. Run all validators, collect errors without raising (catch ValidationError per row), return dict {source_name: [error_messages]}. Function signature: validate_all(dataframes: dict[str, pd.DataFrame]) -> dict[str, list[str]].",
+      "acceptance_criteria": "tests/data/test_validation_report.py: 3 bad rows across 2 sources → report has 2 keys with correct error counts",
+      "completed": false,
+      "priority": 2
+    },
+    {
+      "id": "3.1",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "align_to_settlement_periods",
+      "description": "Create src/features/alignment.py. Join carbon intensity + generation mix DataFrames on settlement_period. Forward-fill gaps of ≤ 3 consecutive missing periods. Drop rows where gap > 3 periods (NaN after fill). Return merged DataFrame.",
+      "acceptance_criteria": "tests/features/test_alignment.py: 1-period gap → filled; 4-period gap → NaN rows dropped",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "3.2",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "join_weather_to_grid",
+      "description": "Create src/features/weather_join.py. Interpolate hourly weather onto 30-min settlement period grid using linear interpolation per city. Pivot cities to wide format: columns like london_temperature, manchester_wind_speed etc.",
+      "acceptance_criteria": "tests/features/test_weather_join.py: hourly weather at 00:00 and 01:00 → interpolated value at 00:30 is midpoint ±0.01",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "3.3",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "rolling_averages",
+      "description": "Create src/features/rolling.py. Compute 7-day (336 half-hour periods) rolling mean for wind_pct, solar_pct, carbon_intensity using min_periods=48. Add as new columns with suffix _7d_avg.",
+      "acceptance_criteria": "tests/features/test_rolling.py: 400 constant values → rolling mean equals constant after period 48",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "3.4",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "lag_features",
+      "description": "Create src/features/lags.py. Create lag columns for a target series at t-1, t-2, t-48 (1 day), t-336 (1 week). Column names: {target}_lag_1, {target}_lag_2, {target}_lag_48, {target}_lag_336.",
+      "acceptance_criteria": "tests/features/test_lags.py: Series [1,2,3,...,10] → lag_1 at index 5 equals 4",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "3.5",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "calendar_features",
+      "description": "Create src/features/calendar.py. Add columns: hour_of_day (0-23), day_of_week (0=Mon), month (1-12), is_weekend (bool), is_bank_holiday_uk (bool). Use workalendar for UK bank holidays. Input: DataFrame with datetime index or settlement_period column.",
+      "acceptance_criteria": "tests/features/test_calendar.py: 2025-12-25 → is_bank_holiday_uk=True, is_weekend=False (it's a Thursday)",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "3.6",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "wind_penetration",
+      "description": "Create src/features/penetration.py. Derive wind_pct = wind / total_generation * 100, solar_pct = solar / total_generation * 100, low_carbon_pct = (nuclear + wind + hydro + solar + biomass) / total_generation * 100. total_generation = sum of all fuel columns.",
+      "acceptance_criteria": "tests/features/test_penetration.py: known generation values → wind_pct + solar_pct + other_pct sums to 100 ±0.01",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "3.7",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "feature_pipeline",
+      "description": "Create src/features/pipeline.py. Compose functions from 3.1–3.6 into a single function feature_pipeline(carbon_df, generation_df, weather_df) -> pd.DataFrame. Returns DataFrame with all engineered features.",
+      "acceptance_criteria": "tests/features/test_pipeline.py: run on fixture data → output has all expected columns (lags, calendar, rolling, penetration, weather), zero NaN in non-lag columns",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "3.8",
+      "epic": "EPIC 3 — Feature Engineering",
+      "title": "feature_store_write",
+      "description": "Create src/features/store.py. Save feature DataFrame to data/features/features_{YYYY-MM-DD}.parquet. Load function reads most recent file. Preserve all dtypes.",
+      "acceptance_criteria": "tests/features/test_store.py: write then read → round-trip preserves all dtypes and row count",
+      "completed": false,
+      "priority": 3
+    },
+    {
+      "id": "4.1",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "time_series_cv_split",
+      "description": "Create src/models/forecasting/cv.py. Implement TimeSeriesSplit with 5 folds, gap=48 periods (1 day), return list of (train_idx, val_idx) tuples. All val indices must be strictly greater than all train indices within each fold.",
+      "acceptance_criteria": "tests/models/test_cv.py: all val indices > all train indices per fold; no index in both train and val",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.2",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "lgbm_quantile_trainer",
+      "description": "Create src/models/forecasting/trainer.py. Train single LightGBM model for given alpha (0.1, 0.5, or 0.9) using quantile regression objective. Use TimeSeriesSplit CV. Return (fitted_model, oof_predictions_array). OOF array length must equal input length.",
+      "acceptance_criteria": "tests/models/test_trainer.py: fit on 1000-row synthetic DataFrame → OOF array length == 1000",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.3",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "quantile_monotonicity_check",
+      "description": "Create src/models/forecasting/monotonicity.py. Assert P10 ≤ P50 ≤ P90 for all predictions. Return dict {violation_count: int, violation_pct: float}. Do not raise — just report.",
+      "acceptance_criteria": "tests/models/test_monotonicity.py: inject 5 crossing P10>P50 predictions → violation_count==5",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.4",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "persistence_baseline",
+      "description": "Create src/models/forecasting/baselines.py. Implement persistence_baseline(series, h) → predictions where prediction at t = value at t-h. Return array of length len(series)-h.",
+      "acceptance_criteria": "tests/models/test_baselines.py: series [10,20,30,40] with h=1 → predictions [10,20,30]",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.5",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "seasonal_naive_baseline",
+      "description": "Add seasonal_naive_baseline(series, h, season=336) to src/models/forecasting/baselines.py. Predict at t+h = value at t-(season-h). Season default 336 (1 week of half-hours).",
+      "acceptance_criteria": "tests/models/test_baselines.py: known series → prediction at index 350 equals value at index 14",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.6",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "pinball_loss",
+      "description": "Create src/models/forecasting/metrics.py. Implement pinball_loss(alpha, predictions, actuals) → float. Formula: mean of max(alpha*(y-yhat), (alpha-1)*(y-yhat)).",
+      "acceptance_criteria": "tests/models/test_metrics.py: alpha=0.5, any predictions/actuals → equals 0.5 * MAE",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.7",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "evaluate_all_models",
+      "description": "Create src/models/forecasting/evaluation.py. Compute MAE, RMSE, pinball loss at each alpha for all three quantile models and both baselines. Return nested dict {model_name: {mae, rmse, pinball_10, pinball_50, pinball_90}}.",
+      "acceptance_criteria": "tests/models/test_evaluation.py: perfect predictions (pred==actual) → all metrics == 0.0",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.8",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "shap_top5",
+      "description": "Create src/models/forecasting/explainability.py. Compute SHAP values for a fitted LightGBM model on a test DataFrame. Return top 5 features as list of (feature_name, mean_abs_shap) tuples sorted descending.",
+      "acceptance_criteria": "tests/models/test_explainability.py: output is list of exactly 5 tuples; all mean_abs_shap values > 0",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.9",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "save_model_artefacts",
+      "description": "Create src/models/forecasting/artefacts.py. Save all three LightGBM models (p10, p50, p90) to saved_models/{YYYY-MM-DD}/. Also save metadata JSON with keys: date, mae, rmse, features (list), training_rows. Use lightgbm's save_model.",
+      "acceptance_criteria": "tests/models/test_artefacts.py: save then load → model predictions identical for same input",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.10",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "load_latest_model",
+      "description": "Add load_latest_model() to src/models/forecasting/artefacts.py. Scan saved_models/ for dated directories (YYYY-MM-DD format), load from the most recent. Return (p10_model, p50_model, p90_model, metadata_dict).",
+      "acceptance_criteria": "tests/models/test_artefacts.py: two dated directories → loads from more recent one",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "4.11",
+      "epic": "EPIC 4 — ML Model Training",
+      "title": "train_script",
+      "description": "Create src/models/forecasting/train.py as CLI entry point. Arguments: --start (date), --end (date), --dry-run (flag). Full pipeline: load features, run CV, train 3 models, evaluate, save artefacts, print eval table. --dry-run skips final save.",
+      "acceptance_criteria": "tests/models/test_train_script.py: --dry-run flag → pipeline runs without error, no files written to saved_models/",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "5.1",
+      "epic": "EPIC 5 — EV Behaviour Model (GMM)",
+      "title": "parse_acn_sessions",
+      "description": "Create src/models/ev_behaviour/parser.py. Extract [arrival_hour (float 0-24), duration_hours (float), energy_kwh (float), day_of_week (int 0-6)] from raw ACN Parquet. arrival_hour = hour + minute/60 of arrival_time.",
+      "acceptance_criteria": "tests/models/test_ev_parser.py: fixture row with known times → correct arrival_hour and duration_hours ±0.01",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "5.2",
+      "epic": "EPIC 5 — EV Behaviour Model (GMM)",
+      "title": "fit_gmm",
+      "description": "Create src/models/ev_behaviour/gmm.py. Fit GaussianMixture(n_components=5, random_state=42) on session feature array [arrival_hour, duration_hours, energy_kwh, day_of_week]. Return (fitted_model, aic, bic).",
+      "acceptance_criteria": "tests/models/test_gmm.py: fit on 500 synthetic samples from 3 known Gaussians → model converges, AIC is finite float",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "5.3",
+      "epic": "EPIC 5 — EV Behaviour Model (GMM)",
+      "title": "sample_sessions",
+      "description": "Add sample_sessions(gmm, n, random_state=None) to src/models/ev_behaviour/gmm.py. Generate N synthetic sessions from GMM. Clamp: arrival_hour to [0, 23.99], duration_hours to [0.5, 24], energy_kwh to [5, 100]. Return DataFrame with these 4 columns.",
+      "acceptance_criteria": "tests/models/test_gmm.py: sample 1000 → all energy_kwh in [5,100], all arrival_hour in [0, 23.99]",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "5.4",
+      "epic": "EPIC 5 — EV Behaviour Model (GMM)",
+      "title": "session_validity_filter",
+      "description": "Create src/models/ev_behaviour/filter.py. Filter sampled sessions: reject if duration_hours < 0.5, energy_kwh > 150, or (arrival_hour + duration_hours) > 48 (departure next day +1 impossible). Return filtered DataFrame.",
+      "acceptance_criteria": "tests/models/test_ev_filter.py: 3 clearly invalid samples injected → all 3 filtered out",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "5.5",
+      "epic": "EPIC 5 — EV Behaviour Model (GMM)",
+      "title": "save_load_gmm",
+      "description": "Add save_gmm(gmm, path) and load_gmm(path) to src/models/ev_behaviour/gmm.py. Pickle GMM to saved_models/gmm_{YYYY-MM-DD}.pkl.",
+      "acceptance_criteria": "tests/models/test_gmm.py: save → load → gmm.sample(1, random_state=42) produces identical output both times",
+      "completed": false,
+      "priority": 4
+    },
+    {
+      "id": "6.1",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "lp_variables",
+      "description": "Create src/optimiser/lp.py. Define PuLP LP problem and decision variables: charge_rate[t] for each 30-min slot t in [0, n_slots). All continuous, bounds [0, max_rate_kw].",
+      "acceptance_criteria": "tests/optimiser/test_lp.py: 4-slot window → 4 PuLP variables created, all LpContinuous with correct bounds",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "6.2",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "lp_objective",
+      "description": "Add objective to LP: minimise sum(charge_rate[t] * carbon_intensity[t] * 0.5) for all t. The 0.5 converts 30-min kW to kWh.",
+      "acceptance_criteria": "tests/optimiser/test_lp.py: 2-slot problem with slot 1 carbon=10, slot 2 carbon=100 → optimal charges slot 1 fully before slot 2",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "6.3",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "lp_constraints",
+      "description": "Add constraints: (1) sum(charge_rate[t] * 0.5) >= required_kwh (must deliver enough energy); (2) charge_rate[t] <= max_rate for all t; (3) charge_rate[t] = 0 for slots outside the plug-in window [start_slot, end_slot].",
+      "acceptance_criteria": "tests/optimiser/test_lp.py: require 10kWh in 1 slot at 5kW max (only 2.5kWh possible) → problem status is Infeasible",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "6.4",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "lp_solver",
+      "description": "Add solve_lp(problem, variables) to src/optimiser/lp.py. Solve with PuLP CBC solver. If optimal: return np.array of charge rates. If infeasible/unbounded: raise InfeasibleScheduleError (define in src/optimiser/exceptions.py).",
+      "acceptance_criteria": "tests/optimiser/test_lp.py: valid 4-slot problem → schedule array sums to required_kwh ±0.001 (accounting for 0.5 factor)",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "6.5",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "dumb_charging_baseline",
+      "description": "Create src/optimiser/baseline.py. Implement dumb_charging(required_kwh, max_rate_kw, n_slots) → np.array. Charge at max_rate each slot (contributing max_rate*0.5 kWh) until required_kwh met, then zero. Last charging slot may be partial.",
+      "acceptance_criteria": "tests/optimiser/test_baseline.py: 10kWh needed, 3.7kW max → schedule is [3.7, 3.7, 2.6, 0, ...] (first two full, third partial)",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "6.6",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "carbon_saving_calc",
+      "description": "Create src/optimiser/savings.py. carbon_saving_gco2(optimal_schedule, dumb_schedule, carbon_intensity_array) → float. Formula: sum((dumb[t] - optimal[t]) * carbon[t] * 0.5). Result in gCO2.",
+      "acceptance_criteria": "tests/optimiser/test_savings.py: known schedules + intensities → manually verified saving ±0.1 gCO2",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "6.7",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "cost_saving_calc",
+      "description": "Add cost_saving_gbp(optimal_schedule, dumb_schedule, agile_prices_array) to src/optimiser/savings.py. Prices in p/kWh. Formula: sum((dumb[t] - optimal[t]) * price[t] * 0.5) / 100. Create tests/fixtures/agile_prices.json with 48 representative prices (4–35 p/kWh range).",
+      "acceptance_criteria": "tests/optimiser/test_savings.py: known prices + schedules → manually verified saving ±0.01 GBP",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "6.8",
+      "epic": "EPIC 6 — Charging Optimiser",
+      "title": "optimise_session",
+      "description": "Create src/optimiser/orchestrator.py. Function optimise_session(plugin_time, departure_time, energy_kwh, max_rate_kw, carbon_forecast_array, agile_prices_array) → dict with keys: schedule (np.array), dumb_schedule, carbon_saving_g (float), cost_saving_gbp (float), slots (list of datetime).",
+      "acceptance_criteria": "tests/optimiser/test_orchestrator.py: fixture session + forecast → output dict has all required keys, carbon_saving_g >= 0",
+      "completed": false,
+      "priority": 5
+    },
+    {
+      "id": "7.1",
+      "epic": "EPIC 7 — Local Forecast API",
+      "title": "app_factory",
+      "description": "Create src/api/app.py. FastAPI app with lifespan context manager: load models on startup (call load_latest_model()), store in app.state.models. GET /health returns {status: ok, models_loaded: true}.",
+      "acceptance_criteria": "tests/api/test_app.py: GET /health with TestClient → 200 {status: ok, models_loaded: true}",
+      "completed": false,
+      "priority": 6
+    },
+    {
+      "id": "7.2",
+      "epic": "EPIC 7 — Local Forecast API",
+      "title": "forecast_schemas",
+      "description": "Create src/api/schemas.py. Pydantic v2 models: ForecastRequest(start: datetime, horizon_hours: int = Field(gt=0, le=168)), ForecastResponse(p10: list[float], p50: list[float], p90: list[float], shap_top5: list[tuple[str, float]]).",
+      "acceptance_criteria": "tests/api/test_schemas.py: ForecastRequest with horizon_hours=-1 → ValidationError; valid input → parses correctly",
+      "completed": false,
+      "priority": 6
+    },
+    {
+      "id": "7.3",
+      "epic": "EPIC 7 — Local Forecast API",
+      "title": "forecast_endpoint",
+      "description": "Create src/api/routes/forecast.py. POST /forecast: parse ForecastRequest, load feature window from feature store, run inference with p10/p50/p90 models, compute SHAP top5, return ForecastResponse.",
+      "acceptance_criteria": "tests/api/test_forecast_endpoint.py: TestClient with mocked model + fixture features → response status 200, body matches ForecastResponse schema",
+      "completed": false,
+      "priority": 6
+    },
+    {
+      "id": "7.4",
+      "epic": "EPIC 7 — Local Forecast API",
+      "title": "optimise_schemas",
+      "description": "Add to src/api/schemas.py: OptimiseRequest(plugin_time: datetime, departure_time: datetime, energy_kwh: float = Field(gt=0), max_rate_kw: float = Field(gt=0)), OptimiseResponse(schedule: list[float], dumb_schedule: list[float], carbon_saving_g: float, cost_saving_gbp: float, slots: list[datetime]).",
+      "acceptance_criteria": "tests/api/test_schemas.py: energy_kwh=0 → ValidationError; valid request → parses correctly",
+      "completed": false,
+      "priority": 6
+    },
+    {
+      "id": "7.5",
+      "epic": "EPIC 7 — Local Forecast API",
+      "title": "optimise_endpoint",
+      "description": "Create src/api/routes/optimise.py. POST /optimise: parse OptimiseRequest, internally call forecast logic to get carbon_forecast for window, load agile prices fixture, call optimise_session(), return OptimiseResponse.",
+      "acceptance_criteria": "tests/api/test_optimise_endpoint.py: TestClient with fixture forecast → valid OptimiseResponse, carbon_saving_g is a non-null float",
+      "completed": false,
+      "priority": 6
+    },
+    {
+      "id": "7.6",
+      "epic": "EPIC 7 — Local Forecast API",
+      "title": "error_handling",
+      "description": "Add exception handlers to src/api/app.py. InfeasibleScheduleError → 422 {error: InfeasibleSchedule, detail: str}. Model not found (FileNotFoundError from load_latest_model) → 503 {error: ModelNotFound, detail: str}.",
+      "acceptance_criteria": "tests/api/test_error_handling.py: trigger each error condition via TestClient → correct HTTP status code + JSON body with error and detail keys",
+      "completed": false,
+      "priority": 6
+    }
+  ]
+}

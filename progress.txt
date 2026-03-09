@@ -1,0 +1,8 @@
+## Ralph Loop Progress Log
+
+Project: EV Charging Demand Optimisation — Local ML MVP
+Started: (not yet started)
+
+---
+
+(No iterations completed yet. Run ralph-once.sh to begin.)
