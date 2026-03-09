@@ -19,7 +19,7 @@
       "title": "dependencies",
       "description": "Add all dependencies to pyproject.toml: lightgbm, duckdb, pandas, pyarrow, scikit-learn, shap, fastapi, uvicorn, httpx, pytest, pytest-asyncio, workalendar, pulp, scipy, numpy. Run 'uv sync' to install. Create tests/test_imports.py that imports each package.",
       "acceptance_criteria": "tests/test_imports.py passes — all packages import without error",
-      "completed": false,
+      "completed": true,
       "priority": 1
     },
     {
