@@ -55,7 +55,7 @@
       "title": "generation_mix_client",
       "description": "Create src/data/collectors/generation_mix.py. Fetch half-hourly generation mix for date range from api.carbonintensity.org.uk/generation/{from}/{to}. Return DataFrame with cols [settlement_period, gas, coal, nuclear, wind, hydro, imports, biomass, other, solar]. All generation values in MW.",
       "acceptance_criteria": "tests/data/test_generation_mix.py: mock HTTP with fixture response → DataFrame with all 10 columns, numeric dtypes",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
