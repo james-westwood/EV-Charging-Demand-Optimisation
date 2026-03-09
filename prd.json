@@ -37,7 +37,7 @@
       "title": "fixtures",
       "description": "Create minimal test fixtures in tests/fixtures/. For each data type create a 10-row Parquet file and matching JSON: carbon_intensity.parquet (cols: settlement_period, intensity_actual, intensity_forecast), generation_mix.parquet (cols: settlement_period, gas, coal, nuclear, wind, hydro, imports, biomass, other, solar), weather.parquet (cols: city, timestamp, temperature, wind_speed, radiation), ev_sessions.parquet (cols: session_id, station_id, arrival_time, departure_time, energy_kwh). Add conftest.py that exposes each as a pytest fixture.",
       "acceptance_criteria": "All fixture Parquet files loadable via pd.read_parquet(); conftest.py fixtures importable in tests",
-      "completed": false,
+      "completed": true,
       "priority": 1
     },
     {
