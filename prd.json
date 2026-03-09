@@ -46,7 +46,7 @@
       "title": "carbon_intensity_client",
       "description": "Create src/data/collectors/carbon_intensity.py. Fetch carbon intensity (gCO2/kWh) for arbitrary date range from api.carbonintensity.org.uk/intensity/{from}/{to}. Return DataFrame with cols [settlement_period, intensity_actual, intensity_forecast]. settlement_period is a datetime. Use httpx for HTTP. Accept from_dt, to_dt as datetime params.",
       "acceptance_criteria": "tests/data/test_carbon_intensity.py: mock HTTP with fixture response → DataFrame with correct columns and dtypes",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {

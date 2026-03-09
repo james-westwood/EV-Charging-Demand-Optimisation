@@ -11,3 +11,4 @@ Started: (not yet started)
 [2026-03-09] [0.2] dependencies: Ran uv sync (all 15 packages already in pyproject.toml) and created tests/test_imports.py; all 16 tests pass.
 [2026-03-09] [0.3] logging_config: Created src/logging_config.py with JSON formatter and get_logger(); LOG_LEVEL env var controls level; 4 tests pass.
 [2026-03-09] [0.4] fixtures: Created 4 Parquet fixture files (10 rows each) in tests/fixtures/ and conftest.py exposing carbon_intensity_df, generation_mix_df, weather_df, ev_sessions_df pytest fixtures; 24 tests pass.
+[2026-03-09] [1.1] carbon_intensity_client: Created src/data/collectors/carbon_intensity.py using httpx; returns DataFrame with settlement_period (UTC datetime), intensity_actual, intensity_forecast; 9 tests pass with mocked HTTP.
