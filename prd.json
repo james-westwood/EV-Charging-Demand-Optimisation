@@ -28,7 +28,7 @@
       "title": "logging_config",
       "description": "Create src/logging_config.py with structured JSON logging. Log level read from LOG_LEVEL env var (default INFO). Exports get_logger(name) function. JSON format must include 'level', 'message', 'timestamp' keys.",
       "acceptance_criteria": "tests/test_logging.py: logger emits JSON with level, message, timestamp keys; setting LOG_LEVEL=DEBUG enables debug messages",
-      "completed": false,
+      "completed": true,
       "priority": 1
     },
     {
