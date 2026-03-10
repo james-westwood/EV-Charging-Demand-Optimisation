@@ -117,11 +117,11 @@
     },
     {
       "id": "2.2",
-      "epic": "EPIC 2 \u2014 Data Validation",
+      "epic": "EPIC 2 — Data Validation",
       "title": "validate_generation_mix",
       "description": "Create src/data/validators/generation_mix.py. Validate: all fuel columns \u2265 0, row sums within 95\u2013105% of stated total (or within 5% of row max if no total col), no missing timestamps. Raise ValidationError with field name.",
       "acceptance_criteria": "tests/data/test_validate_generation.py: row with wind=-5 \u2192 ValidationError naming 'wind'",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {

@@ -19,3 +19,4 @@ Started: (not yet started)
 [2026-03-10] [1.6] incremental_fetch: Implemented get_missing_ranges() to detect gaps in Parquet data based on date boundaries; 7 tests pass.
 [2026-03-10] [1.7] save_raw_parquet: implemented Parquet storage with append and deduplication
 [2026-03-10] [2.1] validate_carbon_intensity: created ValidationError exception and validate_carbon_intensity() checking intensity range 0-800, null/duplicate settlement_periods, and 30-min intervals; 16 tests pass
+[2026-03-10] [2.2] validate_generation_mix: implemented validator for fuel columns >= 0, row sum consistency, and timestamp regularity.
