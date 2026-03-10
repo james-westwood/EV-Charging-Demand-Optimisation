@@ -157,7 +157,7 @@
       "title": "align_to_settlement_periods",
       "description": "Create src/features/alignment.py. Join carbon intensity + generation mix DataFrames on settlement_period. Forward-fill gaps of \u2264 3 consecutive missing periods. Drop rows where gap > 3 periods (NaN after fill). Return merged DataFrame.",
       "acceptance_criteria": "tests/features/test_alignment.py: 1-period gap \u2192 filled; 4-period gap \u2192 NaN rows dropped",
-      "completed": false,
+      "completed": true,
       "priority": 3
     },
     {
