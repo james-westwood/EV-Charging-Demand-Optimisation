@@ -148,7 +148,7 @@
       "title": "validation_report",
       "description": "Create src/data/validators/report.py. Run all validators, collect errors without raising (catch ValidationError per row), return dict {source_name: [error_messages]}. Function signature: validate_all(dataframes: dict[str, pd.DataFrame]) -> dict[str, list[str]].",
       "acceptance_criteria": "tests/data/test_validation_report.py: 3 bad rows across 2 sources \u2192 report has 2 keys with correct error counts",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {

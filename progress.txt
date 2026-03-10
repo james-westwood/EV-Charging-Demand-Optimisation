@@ -22,3 +22,4 @@ Started: (not yet started)
 [2026-03-10] [2.2] validate_generation_mix: implemented validator for fuel columns >= 0, row sum consistency, and timestamp regularity.
 [2026-03-10] [2.3] validate_weather: implemented validator for temperature (-30 to 50°C), wind_speed (0-150 km/h), radiation (>=0), and all 3 cities present per timestamp; 20 tests pass.
 [2026-03-10] [2.4] validate_ev_sessions: implemented validator for energy_kwh > 0, departure_time > arrival_time, duration > 0, and no null station_ids; 18 tests pass.
+[2026-03-10] [2.5] validation_report: implemented validate_all() in report.py that validates each row individually across all four sources, catches ValidationError per row, and returns {source_name: [error_messages]} with only failing sources; 13 tests pass.
