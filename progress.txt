@@ -28,3 +28,4 @@ Started: (not yet started)
 [2026-03-10] [3.3] rolling_averages: implemented 7-day rolling mean for wind, solar, and carbon intensity with 1-day min periods.
 [2026-03-10] [3.4] lag_features: implemented add_lag_features with t-1, t-2, t-48, and t-336 lags for target columns; 4 tests pass.
 [2026-03-10] [3.5] calendar_features: add hour_of_day, day_of_week, month, is_weekend, is_bank_holiday_uk using workalendar; 183 tests pass
+[2026-03-10] [3.6] wind_penetration: implemented add_penetration_features() deriving wind_pct, solar_pct, low_carbon_pct from fuel columns; 8 tests pass (191 total)
