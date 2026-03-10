@@ -19,6 +19,7 @@ dependencies = [
     "pulp>=2.7",
     "scipy>=1.11",
     "numpy>=1.26",
+    "mlflow>=3.10.1",
 ]
 
 [build-system]
