@@ -193,7 +193,7 @@
       "title": "calendar_features",
       "description": "Create src/features/calendar.py. Add columns: hour_of_day (0-23), day_of_week (0=Mon), month (1-12), is_weekend (bool), is_bank_holiday_uk (bool). Use workalendar for UK bank holidays. Input: DataFrame with datetime index or settlement_period column.",
       "acceptance_criteria": "tests/features/test_calendar.py: 2025-12-25 \u2192 is_bank_holiday_uk=True, is_weekend=False (it's a Thursday)",
-      "completed": false,
+      "completed": true,
       "priority": 3
     },
     {

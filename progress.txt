@@ -27,3 +27,4 @@ Started: (not yet started)
 [2026-03-10] [3.2] join_weather_to_grid: implemented weather_join.py with per-city linear time interpolation onto 30-min grid and wide-format pivot to {city_slug}_{variable} columns; 10 tests pass
 [2026-03-10] [3.3] rolling_averages: implemented 7-day rolling mean for wind, solar, and carbon intensity with 1-day min periods.
 [2026-03-10] [3.4] lag_features: implemented add_lag_features with t-1, t-2, t-48, and t-336 lags for target columns; 4 tests pass.
+[2026-03-10] [3.5] calendar_features: add hour_of_day, day_of_week, month, is_weekend, is_bank_holiday_uk using workalendar; 183 tests pass
