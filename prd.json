@@ -207,11 +207,11 @@
     },
     {
       "id": "3.7",
-      "epic": "EPIC 3 \u2014 Feature Engineering",
+      "epic": "EPIC 3 — Feature Engineering",
       "title": "feature_pipeline",
-      "description": "Create src/features/pipeline.py. Compose functions from 3.1\u20133.6 into a single function feature_pipeline(carbon_df, generation_df, weather_df) -> pd.DataFrame. Returns DataFrame with all engineered features.",
-      "acceptance_criteria": "tests/features/test_pipeline.py: run on fixture data \u2192 output has all expected columns (lags, calendar, rolling, penetration, weather), zero NaN in non-lag columns",
-      "completed": false,
+      "description": "Create src/features/pipeline.py. Compose functions from 3.1–3.6 into a single function feature_pipeline(carbon_df, generation_df, weather_df) -> pd.DataFrame. Returns DataFrame with all engineered features.",
+      "acceptance_criteria": "tests/features/test_pipeline.py: run on fixture data → output has all expected columns (lags, calendar, rolling, penetration, weather), zero NaN in non-lag columns",
+      "completed": true,
       "priority": 3
     },
     {
