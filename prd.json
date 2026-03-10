@@ -103,7 +103,7 @@
       "title": "save_raw_parquet",
       "description": "Create src/data/collectors/storage.py. Write DataFrame to data/raw/{source}/{YYYY-MM-DD}.parquet. If file exists, load, append new rows, deduplicate on settlement_period, write back. Create directory if needed.",
       "acceptance_criteria": "tests/data/test_storage.py: write 10 rows twice \u2192 file contains 20 unique rows (no duplicates on settlement_period)",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
