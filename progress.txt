@@ -30,3 +30,4 @@ Started: (not yet started)
 [2026-03-10] [3.5] calendar_features: add hour_of_day, day_of_week, month, is_weekend, is_bank_holiday_uk using workalendar; 183 tests pass
 [2026-03-10] [3.6] wind_penetration: implemented add_penetration_features() deriving wind_pct, solar_pct, low_carbon_pct from fuel columns; 8 tests pass (191 total)
 [2026-03-10] [3.7] feature_pipeline: implemented feature pipeline composing alignment, weather join, penetration, rolling, lags, and calendar features
+[2026-03-10] [3.8] feature_store_write: write_features/load_features with pyarrow parquet, round-trip dtype preservation, tmp_path isolated tests
