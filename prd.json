@@ -220,7 +220,7 @@
       "title": "feature_store_write",
       "description": "Create src/features/store.py. Save feature DataFrame to data/features/features_{YYYY-MM-DD}.parquet. Load function reads most recent file. Preserve all dtypes.",
       "acceptance_criteria": "tests/features/test_store.py: write then read \u2192 round-trip preserves all dtypes and row count",
-      "completed": false,
+      "completed": true,
       "priority": 3
     },
     {
