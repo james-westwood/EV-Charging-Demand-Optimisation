@@ -202,7 +202,7 @@
       "title": "wind_penetration",
       "description": "Create src/features/penetration.py. Derive wind_pct = wind / total_generation * 100, solar_pct = solar / total_generation * 100, low_carbon_pct = (nuclear + wind + hydro + solar + biomass) / total_generation * 100. total_generation = sum of all fuel columns.",
       "acceptance_criteria": "tests/features/test_penetration.py: known generation values \u2192 wind_pct + solar_pct + other_pct sums to 100 \u00b10.01",
-      "completed": false,
+      "completed": true,
       "priority": 3
     },
     {
