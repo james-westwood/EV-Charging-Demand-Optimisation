@@ -112,7 +112,7 @@
       "title": "validate_carbon_intensity",
       "description": "Create src/data/validators/carbon_intensity.py. Validate: intensity values 0\u2013800, no null settlement_periods, 30-min intervals between consecutive rows, no duplicate timestamps. Raise ValidationError (custom exception in src/data/validators/exceptions.py) with field name on first failure.",
       "acceptance_criteria": "tests/data/test_validate_carbon.py: DataFrame with intensity=999 \u2192 ValidationError raised naming the field",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
