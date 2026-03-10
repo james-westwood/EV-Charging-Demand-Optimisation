@@ -17,3 +17,4 @@ Started: (not yet started)
 [2026-03-10] [1.4] acn_data_loader: Implemented ACN-Data CSV loader with column mapping and datetime parsing; added manual download instructions; verified with 2 new tests.
 [2026-03-10] [1.5] retry_decorator: Implemented exponential backoff decorator with max 3 retries and verified with mock endpoint tests.
 [2026-03-10] [1.6] incremental_fetch: Implemented get_missing_ranges() to detect gaps in Parquet data based on date boundaries; 7 tests pass.
+[2026-03-10] [1.7] save_raw_parquet: implemented Parquet storage with append and deduplication
