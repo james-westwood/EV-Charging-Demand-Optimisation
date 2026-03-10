@@ -23,3 +23,4 @@ Started: (not yet started)
 [2026-03-10] [2.3] validate_weather: implemented validator for temperature (-30 to 50°C), wind_speed (0-150 km/h), radiation (>=0), and all 3 cities present per timestamp; 20 tests pass.
 [2026-03-10] [2.4] validate_ev_sessions: implemented validator for energy_kwh > 0, departure_time > arrival_time, duration > 0, and no null station_ids; 18 tests pass.
 [2026-03-10] [2.5] validation_report: implemented validate_all() in report.py that validates each row individually across all four sources, catches ValidationError per row, and returns {source_name: [error_messages]} with only failing sources; 13 tests pass.
+[2026-03-10] [3.1] align_to_settlement_periods: implemented alignment.py joining carbon+generation on settlement_period with 30-min reindex, forward-fill for gaps ≤3 periods, and drop for gaps >3; 9 tests pass
