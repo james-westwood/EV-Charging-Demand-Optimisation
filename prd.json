@@ -166,7 +166,7 @@
       "title": "join_weather_to_grid",
       "description": "Create src/features/weather_join.py. Interpolate hourly weather onto 30-min settlement period grid using linear interpolation per city. Pivot cities to wide format: columns like london_temperature, manchester_wind_speed etc.",
       "acceptance_criteria": "tests/features/test_weather_join.py: hourly weather at 00:00 and 01:00 \u2192 interpolated value at 00:30 is midpoint \u00b10.01",
-      "completed": false,
+      "completed": true,
       "priority": 3
     },
     {
