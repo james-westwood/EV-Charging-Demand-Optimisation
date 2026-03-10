@@ -139,7 +139,7 @@
       "title": "validate_ev_sessions",
       "description": "Create src/data/validators/ev_sessions.py. Validate: energy_kwh > 0, departure_time > arrival_time, duration > 0, no null station_ids. Raise ValidationError.",
       "acceptance_criteria": "tests/data/test_validate_ev.py: session with departure < arrival \u2192 ValidationError",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
