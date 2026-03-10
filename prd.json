@@ -130,7 +130,7 @@
       "title": "validate_weather",
       "description": "Create src/data/validators/weather.py. Validate: temperature \u221230 to 50\u00b0C, wind_speed 0\u2013150 km/h, radiation \u2265 0, all 3 cities (London, Manchester, Edinburgh) present per timestamp. Raise ValidationError.",
       "acceptance_criteria": "tests/data/test_validate_weather.py: row with temperature=999 \u2192 ValidationError; missing city \u2192 ValidationError",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
