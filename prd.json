@@ -85,7 +85,7 @@
       "title": "retry_decorator",
       "description": "Create src/data/collectors/retry.py. Implement exponential backoff decorator: max 3 retries, sleep 2^n seconds (mocked in tests), raises original exception after exhaustion. Works on sync functions. Use functools.wraps.",
       "acceptance_criteria": "tests/data/test_retry.py: mock endpoint failing twice then succeeding \u2192 called 3 times total; failing 3 times \u2192 raises exception after 3 calls",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
