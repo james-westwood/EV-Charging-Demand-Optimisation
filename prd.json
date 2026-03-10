@@ -175,7 +175,7 @@
       "title": "rolling_averages",
       "description": "Create src/features/rolling.py. Compute 7-day (336 half-hour periods) rolling mean for wind_pct, solar_pct, carbon_intensity using min_periods=48. Add as new columns with suffix _7d_avg.",
       "acceptance_criteria": "tests/features/test_rolling.py: 400 constant values \u2192 rolling mean equals constant after period 48",
-      "completed": false,
+      "completed": true,
       "priority": 3
     },
     {
