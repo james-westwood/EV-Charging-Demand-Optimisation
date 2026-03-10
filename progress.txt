@@ -26,3 +26,4 @@ Started: (not yet started)
 [2026-03-10] [3.1] align_to_settlement_periods: implemented alignment.py joining carbon+generation on settlement_period with 30-min reindex, forward-fill for gaps ≤3 periods, and drop for gaps >3; 9 tests pass
 [2026-03-10] [3.2] join_weather_to_grid: implemented weather_join.py with per-city linear time interpolation onto 30-min grid and wide-format pivot to {city_slug}_{variable} columns; 10 tests pass
 [2026-03-10] [3.3] rolling_averages: implemented 7-day rolling mean for wind, solar, and carbon intensity with 1-day min periods.
+[2026-03-10] [3.4] lag_features: implemented add_lag_features with t-1, t-2, t-48, and t-336 lags for target columns; 4 tests pass.

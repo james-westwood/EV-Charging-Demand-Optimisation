@@ -184,7 +184,7 @@
       "title": "lag_features",
       "description": "Create src/features/lags.py. Create lag columns for a target series at t-1, t-2, t-48 (1 day), t-336 (1 week). Column names: {target}_lag_1, {target}_lag_2, {target}_lag_48, {target}_lag_336.",
       "acceptance_criteria": "tests/features/test_lags.py: Series [1,2,3,...,10] \u2192 lag_1 at index 5 equals 4",
-      "completed": false,
+      "completed": true,
       "priority": 3
     },
     {
