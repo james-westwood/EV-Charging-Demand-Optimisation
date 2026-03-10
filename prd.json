@@ -94,7 +94,7 @@
       "title": "incremental_fetch",
       "description": "Create src/data/collectors/incremental.py. Given existing Parquet file with settlement_period column, detect covered date range, compute missing date ranges, return list of (from_dt, to_dt) tuples for missing ranges only. If no existing file, return full range.",
       "acceptance_criteria": "tests/data/test_incremental.py: Parquet covering Jan \u2192 request Jan\u2013Mar \u2192 only Feb\u2013Mar returned as missing ranges",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
