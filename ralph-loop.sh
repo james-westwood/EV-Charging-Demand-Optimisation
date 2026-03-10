@@ -48,7 +48,8 @@ die() {
 run_coder() {
   local agent="$1" prompt="$2"
   if [[ "$agent" == "claude" ]]; then
-    claude --dangerously-skip-permissions --print "$prompt"
+    # unset CLAUDECODE so the subprocess isn't blocked as a nested session
+    env -u CLAUDECODE claude --dangerously-skip-permissions --print "$prompt"
   else
     # Gemini CLI: --yolo auto-approves all tool use (equivalent to --dangerously-skip-permissions)
     gemini --yolo -p "$prompt"
@@ -59,7 +60,7 @@ run_coder() {
 run_reviewer() {
   local agent="$1" prompt="$2"
   if [[ "$agent" == "claude" ]]; then
-    claude --print "$prompt"
+    env -u CLAUDECODE claude --print "$prompt"
   else
     gemini -p "$prompt"
   fi

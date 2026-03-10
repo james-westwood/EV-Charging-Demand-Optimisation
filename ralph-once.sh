@@ -22,7 +22,7 @@ TODAY=$(date +%Y-%m-%d)
 run_coder() {
   local agent="$1" prompt="$2"
   if [[ "$agent" == "claude" ]]; then
-    claude --dangerously-skip-permissions --print "$prompt"
+    env -u CLAUDECODE claude --dangerously-skip-permissions --print "$prompt"
   else
     gemini --yolo -p "$prompt"
   fi
@@ -31,7 +31,7 @@ run_coder() {
 run_reviewer() {
   local agent="$1" prompt="$2"
   if [[ "$agent" == "claude" ]]; then
-    claude --print "$prompt"
+    env -u CLAUDECODE claude --print "$prompt"
   else
     gemini -p "$prompt"
   fi
