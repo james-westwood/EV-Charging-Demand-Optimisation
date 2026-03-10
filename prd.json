@@ -76,7 +76,7 @@
       "title": "acn_data_loader",
       "description": "Create src/data/collectors/acn_loader.py. Load Caltech ACN-Data CSV from local path, parse to DataFrame with normalised cols [session_id, station_id, arrival_time, departure_time, energy_kwh]. arrival_time/departure_time as datetime. Also add src/data/collectors/acn_download.py with instructions for manual download from ev.caltech.edu (print URL and instructions, do not auto-download).",
       "acceptance_criteria": "tests/data/test_acn_loader.py: given fixture CSV \u2192 DataFrame with correct cols and dtypes; arrival_time < departure_time for all rows",
-      "completed": false,
+      "completed": true,
       "priority": 2
     },
     {
