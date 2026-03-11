@@ -46,3 +46,6 @@ htmlcov/
 # MLflow
 mlruns/
 mlflow.db
+
+# DuckDB
+*.duckdb
