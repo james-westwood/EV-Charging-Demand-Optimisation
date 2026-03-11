@@ -43,27 +43,34 @@ The production cloud version replaces Parquet files with BigQuery, the local sch
 energy-forecasting/
 ├── src/
 │   ├── data/
-│   │   ├── collectors/        # API clients: carbon intensity, generation mix, weather, EV sessions
-│   │   └── validators/        # Schema and range validation for each data source
-│   ├── features/              # Feature engineering pipeline
-│   │   ├── alignment.py       # Align all sources to 30-min settlement periods
-│   │   ├── weather_join.py    # Interpolate weather onto the grid index
-│   │   ├── rolling.py         # 7-day rolling averages
-│   │   ├── lags.py            # Lag features (t-1, t-2, t-48, t-336)
-│   │   ├── calendar.py        # Hour, day-of-week, bank holidays
-│   │   ├── penetration.py     # Wind/solar penetration %
-│   │   └── pipeline.py        # Compose all steps into one call
+│   │   ├── collectors/                    # API clients: carbon intensity, generation mix, weather, EV sessions
+│   │   ├── validators/                    # Schema and range validation for each data source
+│   │   └── run_data_collection_pipeline.py  # Fetch all sources into DuckDB in chunked API calls
+│   ├── features/                          # Feature engineering pipeline
+│   │   ├── alignment.py                   # Align all sources to 30-min settlement periods
+│   │   ├── weather_join.py                # Interpolate weather onto the grid index
+│   │   ├── rolling.py                     # 7-day rolling averages
+│   │   ├── lags.py                        # Lag features (t-1, t-2, t-48, t-336)
+│   │   ├── calendar_features.py           # Hour, day-of-week, bank holidays, season sin/cos
+│   │   ├── penetration.py                 # Wind/solar penetration %
+│   │   ├── run_feature_pipeline.py        # Load from DuckDB → engineer features → save Parquet
+│   │   └── store.py                       # Read/write feature Parquet files
 │   ├── models/
-│   │   ├── forecasting/       # LightGBM quantile trainer, CV, metrics, SHAP, artefacts
-│   │   └── ev_behaviour/      # GMM session model
-│   ├── optimiser/             # LP charge scheduler
-│   ├── api/                   # FastAPI app and endpoint schemas
-│   └── logging_config.py      # Structured JSON logging
-├── tests/                     # Mirrors src/ structure, all HTTP mocked
+│   │   ├── forecasting/                   # LightGBM quantile trainer, CV, metrics, SHAP, artefacts
+│   │   │   ├── trainer.py                 # train_quantile_lgbm: time-series CV + MLflow tracking
+│   │   │   ├── run_training_pipeline.py   # Load features → train P10/P50/P90 → log to MLflow
+│   │   │   ├── cv.py                      # TimeSeriesSplit with gap
+│   │   │   ├── metrics.py                 # Pinball loss
+│   │   │   └── baselines.py               # Persistence and seasonal naive baselines
+│   │   └── ev_behaviour/                  # GMM session model
+│   ├── optimiser/                         # LP charge scheduler
+│   ├── api/                               # FastAPI app and endpoint schemas
+│   └── logging_config.py                  # Structured JSON logging
+├── tests/                                 # Mirrors src/ structure, all HTTP mocked
 ├── data/
-│   ├── raw/                   # Downloaded Parquet files by source
-│   └── features/              # Feature store output
-└── saved_models/              # Versioned model artefacts by date (YYYY-MM-DD/)
+│   ├── raw/                               # Downloaded Parquet files by source
+│   └── features/                          # Feature store output (features_YYYY-MM-DD.parquet)
+└── saved_models/                          # Versioned model artefacts by date (YYYY-MM-DD/)
 ```
 
 ---
@@ -145,7 +152,23 @@ uv sync                          # install dependencies
 uv run pytest tests/ -v          # run all tests (~60 passing)
 ```
 
-To fetch live data:
+To run the full pipeline:
+
+```bash
+# 1. Fetch raw data into DuckDB (carbon intensity, generation mix, weather)
+uv run python -m src.data.run_data_collection_pipeline
+
+# 2. Engineer features and save to Parquet
+uv run python src/features/run_feature_pipeline.py
+
+# 3. Train P10/P50/P90 LightGBM models (results tracked in MLflow)
+uv run python src/models/forecasting/run_training_pipeline.py
+
+# View MLflow experiment results
+uv run mlflow ui
+```
+
+To fetch live data for a custom date range:
 
 ```bash
 uv run python -c "
