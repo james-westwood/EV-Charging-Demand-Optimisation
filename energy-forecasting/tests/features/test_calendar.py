@@ -4,7 +4,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.features.calendar import add_calendar_features
+from src.features.calendar_features import add_calendar_features
 
 
 def _make_df_from_index(dates: list[str]) -> pd.DataFrame:

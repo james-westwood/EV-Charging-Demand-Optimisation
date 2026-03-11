@@ -2,17 +2,36 @@
 from __future__ import annotations
 
 import pandas as pd
+import duckdb
+from pathlib import Path
+import numpy as np
 
 from src.features.alignment import align_to_settlement_periods
-from src.features.calendar import add_calendar_features
+from src.features.calendar_features import add_calendar_features
 from src.features.lags import add_lag_features
 from src.features.penetration import add_penetration_features
 from src.features.rolling import add_rolling_features
 from src.features.weather_join import join_weather_to_grid
+from src.features.store import write_features
 from src.logging_config import get_logger
 
 logger = get_logger(__name__)
 
+
+def get_dataframes_from_duckdb(DB_PATH: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    if not DB_PATH.exists(): 
+        raise ValueError(f"Database {DB_PATH} does not exist")
+    conn = duckdb.connect(str(DB_PATH))
+    weath_df = conn.execute("""
+        SELECT * FROM weather""").df()
+    carb_df = conn.execute("""
+                 SElECT * FROM carbon_intensity
+                 """).df()
+    gen_df = conn.execute("""
+                 SElECT * FROM generation_mix
+                 """).df()
+    conn.close() # close that resource leak
+    return carb_df, gen_df, weath_df
 
 def feature_pipeline(
     carbon_df: pd.DataFrame,
@@ -62,10 +81,11 @@ def feature_pipeline(
     # Merge weather features back to main DataFrame
     # Both have settlement_period (as column in df, as index in weather_wide)
     df = df.set_index("settlement_period")
+    # concat, not join here because alignment is already guaranteed
     df = pd.concat([df, weather_wide], axis=1)
     df = df.reset_index()
 
-    # 3. Generation penetration
+    # 3. Generation penetration, i.e. wind_pct, solar_pct, low_carbon_pct
     df = add_penetration_features(df)
 
     # 4. Rolling averages
@@ -78,7 +98,7 @@ def feature_pipeline(
     lag_targets = ["carbon_intensity", "wind_pct"]
     df = add_lag_features(df, lag_targets)
 
-    # 6. Calendar features
+    # 6. Calendar features - holidays, seasons etc
     df = add_calendar_features(df)
 
     # 7. Final clean up
@@ -96,3 +116,11 @@ def feature_pipeline(
 
     logger.info("Feature engineering pipeline complete. Final shape: %s", df.shape)
     return df
+
+
+if __name__ == "__main__":
+    DB_PATH      = Path("data/ev_charging.duckdb")
+    carbon_df, generation_df, weather_df = get_dataframes_from_duckdb(DB_PATH)
+    features_df = feature_pipeline(carbon_df, generation_df, weather_df)
+    # Write df back to duckdb
+    write_features(features_df)
