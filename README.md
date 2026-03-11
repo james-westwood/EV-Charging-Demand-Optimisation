@@ -85,7 +85,12 @@ energy-forecasting/
 
 ## Development method
 
-This project is built using **Ralph Loops** — an autonomous multi-agent development pattern where an AI agent reads a PRD, implements one task at a time, runs tests, commits, and iterates until the PRD is complete.
+This project was started to allow me to apply my ML skills to energy related problems specifically. All ML code is built by me, but the set up of other parts of the pipeline such as the data collection and feature engineering is built using **Ralph Loops** — an autonomous multi-agent development pattern where an AI agent reads a PRD, implements one task at a time, runs tests, commits, and iterates until the PRD is complete. Getting LLMs to build much of the data pipeline has allowed me to focus much more on the ML training and optimisation work, which is the core of this project.
+
+I plan to make this project locally first, then move to the production cloud version when I have time.
+
+
+### Ralph Loop development workflow
 
 Each task follows this flow:
 
@@ -112,7 +117,9 @@ PR opened on GitHub
 Auto-merged → main
 ```
 
-Claude and Gemini are randomly assigned coder/reviewer roles per task, so each PR has a cross-model review. The human developer (James) owns Epics 4–6 (the ML and optimisation work) — those tasks are marked `"owner": "human"` in `prd.json` and the loop stops automatically when it reaches them.
+All ml tasks (Epics 4–6 ) were marked 'owner' as 'human' in `prd.json` so the loop would stop when it reached them and allow me to carry out the coding and optimisation work.
+
+For all other tasks, Claude and Gemini are randomly assigned coder/reviewer roles per task, so each PR has a cross-model review. The human developer (James) owns (the ML and optimisation work) — those tasks are marked `"owner": "human"` in `prd.json` and the loop stops automatically when it reaches them.
 
 To run the loop:
 
@@ -153,10 +160,36 @@ print(df.head())
 
 ---
 
-## Interview talking points
+## Interesting notes about this project
 
-- **Quantile regression over point estimates:** P10/P50/P90 forecasts give uncertainty bounds — standard in energy dispatch where knowing the range matters as much as the median.
-- **LP over RL for the optimiser:** the single-vehicle charge scheduling problem has known constraints and a fixed horizon. LP is exact, fast, and fully interpretable. RL becomes relevant at fleet scale with live grid feedback.
+- **Quantile regression over point estimates:** instead of forecasting the median, the P10/P50/P90 forecasts give uncertainty bounds which is standard in energy dispatch where knowing the range matters as much as the median.
+- **Linear Programming (LP) over Reinforcement Learning (RL)**: the single-vehicle charge scheduling problem has known constraints and a fixed horizon. LP is exact, fast, and fully interpretable. RL would only become relevant at fleet scale with live grid feedback.
 - **Time-series CV:** random CV would leak future data into training. TimeSeriesSplit with a 48-period gap (1 day) ensures validation always follows training chronologically.
 - **DuckDB vs PySpark (cloud version):** at this data volume DuckDB is faster and simpler; the architecture isolates that choice to one service, so swapping Dataproc in at scale changes nothing else.
 - **Ralph Loops + multi-agent review:** autonomous AI-driven development with cross-model code review (Claude ↔ Gemini) reflects where engineering practice is heading — and produced 20+ reviewed PRs with atomic commits.
+
+#### Notes about the features chosen
+
+How do you know which features to engineer? Firstly before touching data, ask: what would a human expert use to make this prediction?
+
+For carbon intensity, an energy trader would tell you:
+ - Is it windy? (wind displaces gas)
+ - What time of day? (demand peaks at 6pm)
+ - Is it a weekday? (industrial demand)
+ - What happened yesterday at this time? (patterns repeat strongly day-to-day)
+ - What season is it? (seasonal weather patterns)
+
+
+ That reasoning directly maps to wind_pct, hour_of_day, is_weekend, lag_48 and season is reflected in month (1-12) which is a bit blunt, or day of the year (1-365)
+ 
+ We would expect to see the following patterns and effects in the UK:
+   - Winter: less solar, more gas/coal to meet heating demand → higher carbon intensity                                        
+  - Summer: more solar, lower demand → lower carbon intensity                                                                 
+  - Spring/Autumn: wind tends to be higher in the UK  
+
+  Even better than day of the year is a sine/cosine encoding of the season:                                                                        
+                                                                                                                              
+  `df['season_sin'] = np.sin(2 * np.pi * df['day_of_year'] / 365)`
+  `df['season_cos'] = np.cos(2 * np.pi * df['day_of_year'] / 365)`
+
+  This wraps the year into a circle so the model understands December and January are adjacent, not opposites. This is like the first harmonic of a Fourier transform.
