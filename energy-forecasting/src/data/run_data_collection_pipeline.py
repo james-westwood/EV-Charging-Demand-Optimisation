@@ -1,12 +1,14 @@
 """Fetch historical data in chunked API calls and store in a local DuckDB database."""
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Callable
 
 import duckdb
 import pandas as pd
 
 from src.data.collectors.carbon_intensity import fetch_carbon_intensity
 from src.data.collectors.generation_mix import fetch_generation_mix
+from src.data.collectors.weather import fetch_weather
 from src.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -35,6 +37,16 @@ def get_conn() -> duckdb.DuckDBPyConnection:
             biomass DOUBLE, other   DOUBLE, solar   DOUBLE
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS weather (
+            city        VARCHAR,
+            timestamp   TIMESTAMPTZ,
+            temperature DOUBLE,
+            wind_speed  DOUBLE,
+            radiation   DOUBLE,
+            PRIMARY KEY (city, timestamp)
+        )
+    """)
     return conn
 
 
@@ -55,7 +67,7 @@ def date_chunks(start: datetime, end: datetime, chunk_days: int):
         cursor += timedelta(days=chunk_days)
 
 
-def fetch_all(label: str, fetch_fn, conn: duckdb.DuckDBPyConnection,
+def fetch_all(label: str, fetch_fn: Callable, conn: duckdb.DuckDBPyConnection,
               start: datetime, end: datetime):
     chunks = list(date_chunks(start, end, CHUNK_DAYS))
     total = 0
@@ -92,9 +104,13 @@ if __name__ == "__main__":
     n_gen = fetch_all("generation_mix", fetch_generation_mix,
                       conn, TARGET_START, TARGET_END)
 
+    print("\n--- Weather ---")
+    n_weather = fetch_all("weather", fetch_weather,
+                          conn, TARGET_START, TARGET_END)
     print(f"\nDone.")
     print(f"  carbon_intensity: {n_carbon} rows")
     print(f"  generation_mix:   {n_gen} rows")
+    print(f"  weather:          {n_weather} rows")
     print(f"  Database: {DB_PATH.resolve()}")
 
     # Quick sanity check
