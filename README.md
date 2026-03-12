@@ -216,3 +216,17 @@ For carbon intensity, an energy trader would tell you:
   `df['season_cos'] = np.cos(2 * np.pi * df['day_of_year'] / 365)`
 
   This wraps the year into a circle so the model understands December and January are adjacent, not opposites. This is like the first harmonic of a Fourier transform.
+
+
+  # Notes on the SHAP analysis
+
+  SHAP values help us explain the model's predictions by showing how important each feature was in the prediction. Specifically the plots show how much each feature has either increased or decreased the predicted value.  
+
+  ![SHAP Beeswarm](energy-forecasting/docs/images/beeswarm.png)
+
+- Shows clearly that carbon_intensity_lag_1 is by far biggest driver of P50 predictions 
+
+  ![SHAP Barplot](energy-forecasting/docs/images/bar_plot.png)    
+
+
+- Shows  that gas is second biggest driver of P50 predictions, but far behind, 13.58 vs 31.64
