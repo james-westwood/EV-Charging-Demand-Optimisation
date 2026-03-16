@@ -83,11 +83,11 @@ energy-forecasting/
 | 1 — Data Acquisition | ✅ Complete | API clients, retry logic, incremental fetch, raw Parquet save |
 | 2 — Data Validation | ✅ Complete | Schema checks, range validation, validation report |
 | 3 — Feature Engineering | ✅ Complete | Full pipeline: alignment → weather → rolling → lags → calendar |
-| 4 — ML Model Training | 🔨 In progress | Time-series CV, LightGBM quantile, baselines, SHAP, artefacts |
-| 4.5 — Model Selection | ✅ Complete | Empirical comparison of Decision Tree, Random Forest, LightGBM — see `notebooks/model_selection.ipynb` |
-| 5 — EV Behaviour Model | ⏳ Pending | GMM fit on ACN session data, session sampler |
-| 6 — Charging Optimiser | ⏳ Pending | LP formulation, carbon/cost saving vs dumb charging baseline |
-| 7 — Local Forecast API | ⏳ Pending | FastAPI wrapping the trained models and optimiser |
+| 4 — Model Selection | ✅ Complete | Empirical comparison of Decision Tree, Random Forest, LightGBM — see `notebooks/model_selection.ipynb` |
+| 5 — ML Model Training | 🔨 In progress | Time-series CV, LightGBM quantile, baselines, SHAP, artefacts |
+| 6 — EV Behaviour Model | ⏳ Pending | GMM fit on ACN session data, session sampler |
+| 7 — Charging Optimiser | ⏳ Pending | LP formulation, carbon/cost saving vs dumb charging baseline |
+| 8 — Local Forecast API | ⏳ Pending | FastAPI wrapping the trained models and optimiser |
 
 ---
 
