@@ -93,55 +93,7 @@ energy-forecasting/
 
 ## Development method
 
-This project was started to allow me to apply my ML skills to energy related problems specifically. All ML code is built by me, but the set up of other parts of the pipeline such as the data collection and feature engineering is built using **Ralph Loops** — an autonomous multi-agent development pattern where an AI agent reads a PRD, implements one task at a time, runs tests, commits, and iterates until the PRD is complete. Getting LLMs to build much of the data pipeline has allowed me to focus much more on the ML training and optimisation work, which is the core of this project.
-
-I plan to make this project locally first, then move to the production cloud version when I have time.
-
-
-### Ralph Loop development workflow
-
-Each task follows this flow:
-
-```
-prd.json (task spec)
-    │
-    ▼
-Feature branch created
-    │
-    ├── CODER (Claude or Gemini, randomly assigned)
-    │     implements in atomic commits:
-    │     [task-id] title: implement
-    │     [task-id] title: add tests
-    │     [task-id] title: mark complete
-    │
-    ▼
-PR opened on GitHub
-    │
-    ├── REVIEWER (the other AI)
-    │     reads gh pr diff, posts review comment
-    │     ends with APPROVED or CHANGES REQUESTED
-    │
-    ▼
-Auto-merged → main
-```
-
-All ml tasks (Epics 4–6 ) were marked 'owner' as 'human' in `prd.json` so the loop would stop when it reached them and allow me to carry out the coding and optimisation work.
-
-For all other tasks, Claude and Gemini are randomly assigned coder/reviewer roles per task, so each PR has a cross-model review. The human developer (James) owns (the ML and optimisation work) — those tasks are marked `"owner": "human"` in `prd.json` and the loop stops automatically when it reaches them.
-
-To run the loop:
-
-```bash
-./ralph-loop.sh --max 10
-```
-
-To run a single iteration:
-
-```bash
-./ralph-once.sh
-# or force a specific task:
-./ralph-once.sh --task 1.4
-```
+This project was started to allow me to apply my ML skills to energy related problems specifically. All ML code is built by me. I plan to make this project locally first, then move to the production cloud version when I have time.
 
 ---
 
