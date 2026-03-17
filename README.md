@@ -3,6 +3,8 @@
 [![CI](https://github.com/james-westwood/EV-Charging-Demand-Optimisation/actions/workflows/ci.yml/badge.svg)](https://github.com/james-westwood/EV-Charging-Demand-Optimisation/actions/workflows/ci.yml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Ty](https://img.shields.io/badge/ty-checked-blue)](https://github.com/astral-sh/ty)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
 Forecast grid carbon intensity and EV charging demand, then optimise charge schedules to minimise carbon emissions and cost. Built as a deliberately over-engineered local MVP; the architecture mirrors what a production system at industry scale would look like, even though a single laptop is enough to run it.
 
@@ -31,12 +33,10 @@ The production cloud version replaces Parquet files with BigQuery, the local sch
 |---|---|
 | Language | Python 3.11+ managed with `uv` |
 | Data collection | `httpx`: Carbon Intensity API, Open-Meteo, ACN-Data |
-| Storage | Parquet (local), `pyarrow` |
+| Storage | `duckdb` (raw + features), Parquet export via `pyarrow` |
 | Feature engineering | `pandas`, `numpy` |
 | ML forecasting | `lightgbm` (quantile regression), `shap` |
 | EV behaviour model | `scikit-learn` GaussianMixture |
-| Optimiser | `PuLP` / `scipy` (linear programming) |
-| API | `FastAPI` + `uvicorn` |
 | Testing | `pytest`, `httpx` mock transport |
 
 ---
@@ -125,7 +125,7 @@ I plan to make this project locally first, then move to the production cloud ver
 ```bash
 cd energy-forecasting
 uv sync                          # install dependencies
-uv run pytest tests/ -v          # run all tests (~60 passing)
+uv run pytest tests/ -v          # run all tests (~199 passing)
 ```
 
 To run the full pipeline:
