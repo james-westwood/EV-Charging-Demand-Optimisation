@@ -1,6 +1,6 @@
 """TimeSeriesSplitter for cross-validation."""
-from sklearn.model_selection import TimeSeriesSplit
 import numpy as np
+from sklearn.model_selection import TimeSeriesSplit
 
 
 def time_series_cv_split(n: int, n_splits: int = 5, gap: int = 48) -> list[tuple[np.ndarray, np.ndarray]]:

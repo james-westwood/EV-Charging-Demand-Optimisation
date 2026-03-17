@@ -1,4 +1,5 @@
 """Weather data collector using Open-Meteo archive API."""
+
 from datetime import datetime, timezone
 
 import httpx
@@ -67,7 +68,7 @@ def fetch_weather(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
             )
 
     columns = ["city", "timestamp", "temperature", "wind_speed", "radiation"]
-    df = pd.DataFrame(all_rows, columns=columns)
+    df = pd.DataFrame(all_rows, columns=columns)  # type: ignore
     if not df.empty:
         df["temperature"] = pd.to_numeric(df["temperature"], errors="coerce")
         df["wind_speed"] = pd.to_numeric(df["wind_speed"], errors="coerce")

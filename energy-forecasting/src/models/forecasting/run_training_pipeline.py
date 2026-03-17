@@ -4,13 +4,10 @@
 4. Print a summary of the losses   """
   
   
+
 from src.features.store import load_features
-from src.models.forecasting.trainer import train_quantile_lgbm
 from src.models.forecasting.metrics import pinball_loss
-import pandas as pd
-import numpy as np
-
-
+from src.models.forecasting.trainer import train_quantile_lgbm
 
 
 def train(feature_df):

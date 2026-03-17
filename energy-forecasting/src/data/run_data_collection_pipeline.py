@@ -107,7 +107,7 @@ if __name__ == "__main__":
     print("\n--- Weather ---")
     n_weather = fetch_all("weather", fetch_weather,
                           conn, TARGET_START, TARGET_END)
-    print(f"\nDone.")
+    print("\nDone.")
     print(f"  carbon_intensity: {n_carbon} rows")
     print(f"  generation_mix:   {n_gen} rows")
     print(f"  weather:          {n_weather} rows")

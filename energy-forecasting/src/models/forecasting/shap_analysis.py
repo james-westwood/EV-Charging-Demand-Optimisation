@@ -1,9 +1,10 @@
 
 
-from src.features.store import load_features
-import shap
+import matplotlib.pyplot as plt
 import mlflow.lightgbm
-import matplotlib.pyplot as plt                                                                                            
+import shap
+
+from src.features.store import load_features
 
 # The run id of the p50 model                                                                                                                              
 run_id = "25edfa4de4044027bb61638f62fa57e3"                                                                                 

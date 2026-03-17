@@ -15,7 +15,8 @@ venv/
 env/
 
 # uv
-uv.lock
+# uv.lock is needed for CI - uncomment only for libraries where lock doesn't need to be shared
+# uv.lock
 
 # Data files (large)
 data/raw/

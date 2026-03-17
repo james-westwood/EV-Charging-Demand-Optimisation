@@ -1,5 +1,8 @@
 # EV Charging Demand Optimisation
 
+[![CI](https://github.com/james-westwood/EV-Charging-Demand-Optimisation/actions/workflows/ci.yml/badge.svg)](https://github.com/james-westwood/EV-Charging-Demand-Optimisation/actions/workflows/ci.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Ty](https://img.shields.io/badge/ty-checked-blue)](https://github.com/astral-sh/ty)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 

@@ -1,9 +1,9 @@
 """Calendar features for energy forecasting."""
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 from workalendar.europe import UnitedKingdom
-import numpy as np
 
 from src.logging_config import get_logger
 

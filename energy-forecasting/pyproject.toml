@@ -23,6 +23,12 @@ dependencies = [
     "ipykernel>=7.2.0",
 ]
 
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
+    "ty>=0.0.0a1",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -34,3 +40,10 @@ packages = ["src"]
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-v"
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
