@@ -1,4 +1,5 @@
 """Carbon intensity data collector for api.carbonintensity.org.uk."""
+
 from datetime import datetime, timezone
 
 import httpx
@@ -44,7 +45,7 @@ def fetch_carbon_intensity(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
             }
         )
 
-    df = pd.DataFrame(rows, columns=["settlement_period", "intensity_actual", "intensity_forecast"])
+    df = pd.DataFrame(rows, columns=["settlement_period", "intensity_actual", "intensity_forecast"])  # type: ignore
     if not df.empty:
         df["intensity_actual"] = df["intensity_actual"].astype("Int64")
         df["intensity_forecast"] = df["intensity_forecast"].astype("Int64")

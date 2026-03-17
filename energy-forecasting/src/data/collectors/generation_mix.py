@@ -1,4 +1,5 @@
 """Generation mix data collector for api.carbonintensity.org.uk."""
+
 from datetime import datetime, timezone
 
 import httpx
@@ -9,7 +10,17 @@ from src.logging_config import get_logger
 logger = get_logger(__name__)
 
 _BASE_URL = "https://api.carbonintensity.org.uk"
-_FUEL_COLUMNS = ["gas", "coal", "nuclear", "wind", "hydro", "imports", "biomass", "other", "solar"]
+_FUEL_COLUMNS = [
+    "gas",
+    "coal",
+    "nuclear",
+    "wind",
+    "hydro",
+    "imports",
+    "biomass",
+    "other",
+    "solar",
+]
 
 
 def fetch_generation_mix(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
@@ -43,7 +54,7 @@ def fetch_generation_mix(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
         rows.append(row)
 
     columns = ["settlement_period"] + _FUEL_COLUMNS
-    df = pd.DataFrame(rows, columns=columns)
+    df = pd.DataFrame(rows, columns=columns)  # type: ignore
     if not df.empty:
         for col in _FUEL_COLUMNS:
             df[col] = pd.to_numeric(df[col], errors="coerce")

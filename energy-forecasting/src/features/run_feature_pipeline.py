@@ -1,18 +1,18 @@
 """Feature engineering pipeline for EV charging demand optimisation."""
 from __future__ import annotations
 
-import pandas as pd
-import duckdb
 from pathlib import Path
-import numpy as np
+
+import duckdb
+import pandas as pd
 
 from src.features.alignment import align_to_settlement_periods
 from src.features.calendar_features import add_calendar_features
 from src.features.lags import add_lag_features
 from src.features.penetration import add_penetration_features
 from src.features.rolling import add_rolling_features
-from src.features.weather_join import join_weather_to_grid
 from src.features.store import write_features
+from src.features.weather_join import join_weather_to_grid
 from src.logging_config import get_logger
 
 logger = get_logger(__name__)

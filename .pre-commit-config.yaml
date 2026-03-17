@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^energy-forecasting/src/
+      - id: ruff-format
+        files: ^energy-forecasting/src/
+  - repo: https://github.com/astral-sh/ty
+    rev: v0.3.0
+    hooks:
+      - id: ty
+        files: ^energy-forecasting/src/
