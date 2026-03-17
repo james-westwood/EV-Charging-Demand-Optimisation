@@ -1,5 +1,9 @@
 # EV Charging Demand Optimisation
 
+[![CI](https://github.com/james-westwood/EV-Charging-Demand-Optimisation/actions/workflows/ci.yml/badge.svg)](https://github.com/james-westwood/EV-Charging-Demand-Optimisation/actions/workflows/ci.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Ty](https://img.shields.io/badge/ty-checked-blue)](https://github.com/astral-sh/ty)
+
 Forecast grid carbon intensity and EV charging demand, then optimise charge schedules to minimise carbon emissions and cost. Built as a deliberately over-engineered local MVP; the architecture mirrors what a production system at industry scale would look like, even though a single laptop is enough to run it.
 
 > **Cloud-native version:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the full UpCloud + GCP design with Kafka, BigQuery, Cloud Run, and Dataflow.
