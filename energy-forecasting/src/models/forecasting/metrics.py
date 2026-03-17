@@ -29,3 +29,9 @@ def calc_MAPE(predictions: np.ndarray, actuals: np.ndarray) -> float:
     MAPE = sum(APE) / len(APE)
     
     return MAPE
+
+def calc_RMSE(predictions: np.ndarray, actuals: np.ndarray) -> float:
+    """Root Mean Squared Error (RMSE) used in machine learning to evaluate 
+    the accuracy of predictions made by models, particularly in regression 
+    and forecasting tasks. """
+    return np.sqrt(np.mean((predictions - actuals) ** 2))
