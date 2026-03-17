@@ -27,22 +27,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: uv sync
-
-      - name: Install linting tools
-        run: |
-          uv tool install ruff
-          curl -fsSL https://ty.io/install.sh | sh
-          export PATH="$HOME/.ty/bin:$PATH"
-          echo "$HOME/.ty/bin" >> $GITHUB_PATH
-          ty --version
-        shell: bash
+        run: uv sync --group dev
 
       - name: Run ruff
-        run: ruff check src
+        run: uv run ruff check src
 
       - name: Run ty
-        run: ty check src
+        run: uv run ty check src
 
       - name: Run tests
         run: uv run pytest tests/

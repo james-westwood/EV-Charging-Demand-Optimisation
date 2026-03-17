@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def persistence_baseline(series: np.ndarray, h: int = 48) -> np.ndarray:
     """Persistence (naive) baseline: predict that the value h periods ahead equals the current value.
 

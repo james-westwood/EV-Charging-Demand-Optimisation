@@ -3,14 +3,14 @@
   trained model plus out-of-fold predictions covering the full dataset.
 """
 
-from lightgbm import Booster, LGBMRegressor
+import mlflow
+import mlflow.lightgbm
 import numpy as np
 import pandas as pd
-from src.models.forecasting.cv import time_series_cv_split
-import mlflow   
-import mlflow.lightgbm                                                                                                                          
-from src.models.forecasting.metrics import pinball_loss
+from lightgbm import Booster, LGBMRegressor
 
+from src.models.forecasting.cv import time_series_cv_split
+from src.models.forecasting.metrics import pinball_loss
 
 
 def train_quantile_lgbm(
@@ -51,13 +51,12 @@ def train_quantile_lgbm(
             X_train = X.iloc[train_idx]
             y_train = y.iloc[train_idx]
             X_val = X.iloc[val_idx]
-            y_val = y.iloc[val_idx]
         
-            fold_model = LGBMRegressor(**params)
+            fold_model = LGBMRegressor(**params)  # type: ignore[invalid-argument-type]
             fold_model.fit(X_train, y_train)
             oof_preds[val_idx] = fold_model.predict(X_val)
                 
-        final_model = LGBMRegressor(**params)  # 1. create untrained model                                                                              
+        final_model = LGBMRegressor(**params)  # type: ignore[invalid-argument-type]  # 1. create untrained model                                                                              
         final_model.fit(X, y)                  # 2. train it on ALL data
         
         # Log oof pinball loss ignoring nans
@@ -69,6 +68,6 @@ def train_quantile_lgbm(
     return final_model, oof_preds          # 3. return the now-trained model  
 
 if __name__ == "__main__":
-    X = pd.DataFrame(np.random.randn(1000, 5), columns=list("ABCDE"))
+    X = pd.DataFrame(np.random.randn(1000, 5), columns=list("ABCDE"))  # type: ignore[invalid-argument-type]
     y = pd.Series(np.random.randn(1000))
     print(train_quantile_lgbm(X, y, alpha=0.5))

@@ -50,7 +50,7 @@ def fetch_generation_mix(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
         fuel_map = {item["fuel"]: item["perc"] for item in entry.get("generationmix", [])}
         row = {"settlement_period": period}
         for col in _FUEL_COLUMNS:
-            row[col] = fuel_map.get(col)
+            row[col] = fuel_map.get(col)  # type: ignore[assignment]
         rows.append(row)
 
     columns = ["settlement_period"] + _FUEL_COLUMNS
