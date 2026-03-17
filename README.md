@@ -99,49 +99,6 @@ This project was started to allow me to apply my ML skills to energy related pro
 I plan to make this project locally first, then move to the production cloud version when I have time.
 
 
-### Ralph Loop development workflow
-
-Each task follows this flow:
-
-```
-prd.json (task spec)
-    │
-    ▼
-Feature branch created
-    │
-    ├── CODER (Claude or Gemini, randomly assigned)
-    │     implements in atomic commits:
-    │     [task-id] title: implement
-    │     [task-id] title: add tests
-    │     [task-id] title: mark complete
-    │
-    ▼
-PR opened on GitHub
-    │
-    ├── REVIEWER (the other AI)
-    │     reads gh pr diff, posts review comment
-    │     ends with APPROVED or CHANGES REQUESTED
-    │
-    ▼
-Auto-merged → main
-```
-
-All ml tasks (Epics 4–6) were taken care of by me; when the loop reached those epics it stopped and allowed me to carry out the coding and optimisation work. For all other tasks, Claude and Gemini are randomly assigned coder/reviewer roles per task, so each PR has a cross-model review.
-
-To run the loop:
-
-```bash
-./ralph-loop.sh --max 10
-```
-
-To run a single iteration:
-
-```bash
-./ralph-once.sh
-# or force a specific task:
-./ralph-once.sh --task 1.4
-```
-
 ---
 
 ## Quickstart
