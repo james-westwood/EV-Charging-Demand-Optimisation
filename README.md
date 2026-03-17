@@ -84,7 +84,23 @@ energy-forecasting/
 | 2 — Data Validation | ✅ Complete | Schema checks, range validation, validation report |
 | 3 — Feature Engineering | ✅ Complete | Full pipeline: alignment → weather → rolling → lags → calendar |
 | 4 — Model Selection | ✅ Complete | Empirical comparison of Decision Tree, Random Forest, LightGBM — see `notebooks/model_selection.ipynb` |
-| 5 — ML Model Training | 🔨 In progress | Time-series CV, LightGBM quantile, baselines, SHAP done — quantile monotonicity check, baseline evaluation, and model artefact saving still to do |
+| 5 — ML Model Training | 🔨 In progress | See breakdown below |
+
+### Epic 5 — ML Model Training detail
+
+| Task | Status |
+|---|---|
+| Time-series walk-forward CV (`cv.py`) | ✅ Done |
+| Pinball loss metric (`metrics.py`) | ✅ Done |
+| Persistence + seasonal naive baselines (`baselines.py`) | ✅ Done |
+| LightGBM quantile trainer P10/P50/P90 (`trainer.py`) | ✅ Done |
+| Training pipeline with MLflow tracking (`run_training_pipeline.py`) | ✅ Done |
+| SHAP analysis — beeswarm + bar plots (`shap_analysis.py`) | ✅ Done |
+| Quantile monotonicity check (P10 ≤ P50 ≤ P90) | ❌ To do |
+| Evaluate P10/P50/P90 vs baselines using pinball loss | ❌ To do |
+| Save model artefacts to `saved_models/YYYY-MM-DD/` | ❌ To do |
+| Load latest model artefacts | ❌ To do |
+
 | 6 — EV Behaviour Model | ⏳ Pending | GMM fit on ACN session data, session sampler |
 | 7 — Charging Optimiser | ⏳ Pending | LP formulation, carbon/cost saving vs dumb charging baseline |
 | 8 — Local Forecast API | ⏳ Pending | FastAPI wrapping the trained models and optimiser |
@@ -93,7 +109,9 @@ energy-forecasting/
 
 ## Development method
 
-This project was started to allow me to apply my ML skills to energy related problems specifically. All ML code is built by me. I plan to make this project locally first, then move to the production cloud version when I have time.
+This project was started to allow me to apply my ML skills to energy related problems specifically. I plan to make this project locally first, then move to the production cloud version when I have time.
+
+The data pipeline and API scaffolding (Epics 0–3, 8) were built using AI-assisted tooling to move quickly through the infrastructure. The model selection, training, evaluation, and optimisation work (Epics 4–7) is hand-coded by me — that's the core of the project and where the interesting decisions are made.
 
 ---
 
