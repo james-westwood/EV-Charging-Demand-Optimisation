@@ -1,6 +1,6 @@
 # EV Charging Demand Optimisation
 
-Forecast grid carbon intensity and EV charging demand, then optimise charge schedules to minimise carbon emissions and cost. Built as a deliberately over-engineered local MVP; the architecture mirrors what a production system at Kaluza/Flex scale would look like, even though a single laptop is enough to run it.
+Forecast grid carbon intensity and EV charging demand, then optimise charge schedules to minimise carbon emissions and cost. Built as a deliberately over-engineered local MVP; the architecture mirrors what a production system at industry scale would look like, even though a single laptop is enough to run it.
 
 > **Cloud-native version:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the full UpCloud + GCP design with Kafka, BigQuery, Cloud Run, and Dataflow.
 
@@ -126,9 +126,7 @@ PR opened on GitHub
 Auto-merged → main
 ```
 
-All ml tasks (Epics 4–6 ) were marked 'owner' as 'human' in `prd.json` so the loop would stop when it reached them and allow me to carry out the coding and optimisation work.
-
-For all other tasks, Claude and Gemini are randomly assigned coder/reviewer roles per task, so each PR has a cross-model review. The human developer (James) owns the ML and optimisation work; those tasks are marked `"owner": "human"` in `prd.json` and the loop stops automatically when it reaches them.
+All ml tasks (Epics 4–6) were taken care of by me; when the loop reached those epics it stopped and allowed me to carry out the coding and optimisation work. For all other tasks, Claude and Gemini are randomly assigned coder/reviewer roles per task, so each PR has a cross-model review.
 
 To run the loop:
 
