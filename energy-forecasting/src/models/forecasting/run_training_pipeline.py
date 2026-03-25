@@ -6,9 +6,10 @@
 from src.features.store import load_features
 from src.models.forecasting.metrics import pinball_loss
 from src.models.forecasting.trainer import train_quantile_lgbm
+from src.models.forecasting.artefacts import load_latest_artefacts, save_artefacts
 
 
-def train(feature_df):
+def train_and_save(feature_df):
     # Get the target column y
     y = feature_df["carbon_intensity"]
 
@@ -18,6 +19,8 @@ def train(feature_df):
     # Also drop the datetime column because lgbm can't handle it
     X = X.drop("settlement_period", axis=1)
 
+    model_dict = {}
+
     alphas = [0.1, 0.5, 0.9]
     for alpha in alphas:
         model, oof = train_quantile_lgbm(X, y, alpha=alpha)
@@ -25,7 +28,12 @@ def train(feature_df):
                             predictions=oof,
                             actuals=y)
         print(f"Alpha: {alpha}, Loss: {loss}")
+        model_dict[f"p{int(alpha*100)}"] = model
+
+    # save models 
+    save_artefacts(model_dict)
 
 if __name__ == "__main__":
     feature_df = load_features()
-    train(feature_df)
+    train_and_save(feature_df)
+    
