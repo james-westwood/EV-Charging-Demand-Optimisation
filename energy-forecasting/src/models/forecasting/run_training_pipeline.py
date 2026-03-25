@@ -2,8 +2,6 @@
 2. Define X and y — drop non-feature columns to get X, pull carbon_intensity as y
 3. Call train_quantile_lgbm three times — P10, P50, P90                                                                     
 4. Print a summary of the losses   """
-  
-  
 
 from src.features.store import load_features
 from src.models.forecasting.metrics import pinball_loss

@@ -35,3 +35,15 @@ def calc_RMSE(predictions: np.ndarray, actuals: np.ndarray) -> float:
     the accuracy of predictions made by models, particularly in regression 
     and forecasting tasks. """
     return np.sqrt(np.mean((predictions - actuals) ** 2))
+
+def calc_MSE(predictions: np.ndarray, actuals: np.ndarray) -> float:
+    """Mean Squared Error (MSE) used in machine learning to evaluate 
+    the accuracy of predictions made by models, particularly in regression 
+    and forecasting tasks. """
+    return np.mean((predictions - actuals) ** 2)
+
+def calc_mae(predictions: np.ndarray, actuals: np.ndarray) -> float:
+    """Mean Absolute Error (MAE) used in machine learning to evaluate 
+    the accuracy of predictions made by models, particularly in regression 
+    and forecasting tasks. """
+    return np.mean(abs(predictions - actuals))
