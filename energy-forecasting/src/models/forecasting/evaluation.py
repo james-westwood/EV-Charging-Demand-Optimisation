@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.models.forecasting.baselines import seasonal_naive_baseline, persistence_baseline
-from src.models.forecasting.metrics import pinball_loss, calc_RMSE, calc_mae
+from src.models.forecasting.baselines import persistence_baseline, seasonal_naive_baseline
+from src.models.forecasting.metrics import calc_mae, calc_RMSE, pinball_loss
 from src.models.forecasting.trainer import train_quantile_lgbm
 
 

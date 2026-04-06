@@ -4,9 +4,9 @@
 4. Print a summary of the losses   """
 
 from src.features.store import load_features
+from src.models.forecasting.artefacts import save_artefacts
 from src.models.forecasting.metrics import pinball_loss
 from src.models.forecasting.trainer import train_quantile_lgbm
-from src.models.forecasting.artefacts import load_latest_artefacts, save_artefacts
 
 
 def train_and_save(feature_df):

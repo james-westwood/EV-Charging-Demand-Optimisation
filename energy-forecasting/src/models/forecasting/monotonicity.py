@@ -1,4 +1,6 @@
 import numpy as np
+
+
 def check_quantile_monotonicity(                                                                                                                
       p10: np.ndarray,
       p50: np.ndarray,                                                                                                                            
