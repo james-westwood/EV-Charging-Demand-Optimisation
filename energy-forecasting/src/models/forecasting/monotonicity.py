@@ -5,7 +5,7 @@ def check_quantile_monotonicity(
       p10: np.ndarray,
       p50: np.ndarray,                                                                                                                            
       p90: np.ndarray,
-  ) -> dict[int, float]:
+  ) -> dict[str, float]:
     """Checks monotonicity of predictions. A function is
     monotonic if, as the input values increase, the output
     values either always increase or always decrease"""
