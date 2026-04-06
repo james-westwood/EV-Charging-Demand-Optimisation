@@ -257,6 +257,10 @@ Kafka is the contract boundary between all microservices. It must exist before a
 
 ### Epic 8 — Local Forecast API detail
 
+Both a REST and GraphQL API are exposed from the same FastAPI app. REST is the primary interface; GraphQL (via Strawberry mounted at `/graphql`) serves the dashboard and any consumer needing flexible field selection across nested regional data.
+
+#### REST (FastAPI)
+
 | Task | Status |
 |---|---|
 | FastAPI app scaffold with health endpoint | To do |
@@ -265,6 +269,17 @@ Kafka is the contract boundary between all microservices. It must exist before a
 | Regional carbon intensity data collection (Carbon Intensity API regional endpoint) | To do |
 | **Viz:** UK regional carbon intensity map — Plotly choropleth of GB regions, colour = live/forecast carbon | To do |
 | **Viz:** Generation mix stacked area chart — gas/wind/nuclear/solar/hydro over time, animated or interactive | To do |
+
+#### GraphQL (Strawberry, mounted on FastAPI at `/graphql`)
+
+| Task | Status |
+|---|---|
+| Add Strawberry dependency, mount `GraphQLRouter` on existing FastAPI app | To do |
+| Define `Region`, `Forecast`, `SettlementPeriod`, `Weather` Strawberry types | To do |
+| `forecast(region, horizon)` query — returns P10/P50/P90 with per-period breakdown | To do |
+| `regions(ids)` query — multi-region carbon intensity + forecast in one request | To do |
+| `optimiseCharging(sessionStart, sessionEnd, energyNeeded)` mutation — returns optimal schedule | To do |
+| Wire Strawberry resolvers to the same model/feature logic used by the REST endpoints | To do |
 
 ### Epic 10 — Portfolio Dashboard detail
 
