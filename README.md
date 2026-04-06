@@ -6,24 +6,84 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
-Forecast grid carbon intensity and EV charging demand, then optimise charge schedules to minimise carbon emissions and cost. Built as a deliberately over-engineered local MVP; the architecture mirrors what a production system at industry scale would look like, even though a single laptop is enough to run it.
+Forecast grid carbon intensity and EV charging demand, then optimise charge schedules to minimise carbon emissions and cost. The project exists in two forms: a **local version** running end-to-end on a single machine, and a **cloud version** built on Databricks with PySpark, Delta tables, and the MLflow Model Registry.
 
-> **Cloud-native version:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the full UpCloud + GCP design with Kafka, BigQuery, Cloud Run, and Dataflow.
+> **Cloud-native architecture brief:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the full UpCloud + GCP design with Kafka, BigQuery, Cloud Run, and Dataflow.
+
+---
+
+## Sustainable Development Goals
+
+This project directly supports two UN Sustainable Development Goals:
+
+| Goal | Link |
+|---|---|
+| **SDG 7 — Affordable and Clean Energy**: optimising when EVs charge to maximise use of low-carbon grid electricity | [sdgdata.gov.uk/7](https://sdgdata.gov.uk/7/) |
+| **SDG 13 — Climate Action**: reducing carbon emissions from EV charging through carbon-aware scheduling | [sdgdata.gov.uk/13](https://sdgdata.gov.uk/13/) |
 
 ---
 
 ## What this repo is
 
-A **local-only ML MVP** that runs end-to-end on a single machine:
+An end-to-end ML pipeline in two versions:
 
 1. Pulls live grid and weather data from public APIs
 2. Validates and engineers features into 30-minute settlement period windows
 3. Trains LightGBM quantile models (P10/P50/P90) to forecast carbon intensity
 4. Models EV session behaviour using a Gaussian Mixture Model
 5. Optimises individual charging schedules with linear programming
-6. Exposes everything through a local FastAPI
+6. Exposes everything through a FastAPI
 
-The production cloud version replaces Parquet files with BigQuery, the local scheduler with Cloud Scheduler, and the FastAPI with Cloud Run microservices, but the ML logic, feature pipeline, and LP formulation are identical.
+### Local version vs Databricks version
+
+The local version runs on a single machine using pandas and DuckDB. The Databricks version mirrors the same pipeline at scale using PySpark, Delta tables, and the MLflow Model Registry:
+
+| Local (`src/`) | Databricks |
+|---|---|
+| `collectors/carbon_intensity.py` | Bronze table — raw API data ingested to Delta |
+| `features/rolling.py`, `lags.py` | Silver table — PySpark window functions replacing pandas |
+| `features/store.py` | Gold table — ML-ready feature table |
+| `models/trainer.py` | `applyInPandas` — train per region in parallel |
+| `models/artefacts.py` | MLflow Model Registry |
+
+The ML logic, feature pipeline, and LP formulation are identical across both versions.
+
+---
+
+## Local pipeline
+
+```mermaid
+flowchart TD
+    subgraph collect["① Data Collection"]
+        A1["Carbon Intensity API\nhalf-hourly actuals + forecast"]
+        A2["Generation Mix API\ngas · wind · solar · nuclear · hydro"]
+        A3["Open-Meteo\nweather for London · Manchester · Edinburgh"]
+        A1 & A2 & A3 --> VAL["Schema & range\nvalidation"]
+        VAL --> DB[("DuckDB\nev_charging.duckdb")]
+    end
+
+    subgraph feat["② Feature Engineering"]
+        DB --> AL["Align to 30-min\nsettlement periods"]
+        AL --> WJ["Weather join\ninterpolate hourly → 30-min"]
+        WJ --> PE["Penetration features\nwind% · solar% · low_carbon%"]
+        PE --> RO["Rolling averages\n7-day window"]
+        RO --> LA["Lag features\nt-1 · t-2 · t-48 · t-336"]
+        LA --> CA["Calendar features\nhour · weekday · bank holidays · season sin/cos"]
+        CA --> FS[("Feature store\nParquet")]
+    end
+
+    subgraph train["③ Model Training"]
+        FS --> CV["TimeSeriesSplit CV\n5 folds · gap = 48 periods"]
+        CV --> P10["LightGBM P10\nα = 0.1  quantile"]
+        CV --> P50["LightGBM P50\nα = 0.5  quantile"]
+        CV --> P90["LightGBM P90\nα = 0.9  quantile"]
+        CV --> BL["Baselines\npersistence · seasonal naive"]
+    end
+
+    P10 & P50 & P90 --> SM[("Saved models\nsaved_models/YYYY-MM-DD/")]
+    P10 & P50 & P90 & BL --> ML["MLflow\npinball loss · MAE · RMSE"]
+    P50 --> SH["SHAP analysis\nbeeswarm · bar · waterfall"]
+```
 
 ---
 
@@ -37,6 +97,12 @@ The production cloud version replaces Parquet files with BigQuery, the local sch
 | Feature engineering | `pandas`, `numpy` |
 | ML forecasting | `lightgbm` (quantile regression), `shap` |
 | EV behaviour model | `scikit-learn` GaussianMixture |
+| Visualisation | `matplotlib`, `seaborn`, `plotly` |
+| Portfolio dashboard | `streamlit` |
+| System diagrams | `diagrams` (cloud architecture, PNG), Mermaid (pipeline flows, GitHub-native) |
+| Streaming | Apache Kafka (self-hosted on UpCloud) |
+| Cloud | GCP: BigQuery, Cloud Run, Dataflow, GCS, Cloud Scheduler, Secret Manager |
+| Scale-up (Databricks track) | PySpark, Delta tables, `applyInPandas` for regional model training |
 | Testing | `pytest`, `httpx` mock transport |
 
 ---
@@ -79,7 +145,11 @@ energy-forecasting/
 
 ---
 
-## Epics
+## Roadmap
+
+The project runs as two parallel tracks: a **local pipeline** for rapid ML iteration, and a **cloud/Kafka track** that shows how the same system would run at production scale.
+
+### Local pipeline track
 
 | Epic | Status | Description |
 |---|---|---|
@@ -92,7 +162,58 @@ energy-forecasting/
 | 6. EV Behaviour Model | Pending | GMM fit on ACN session data, session sampler |
 | 7. Charging Optimiser | Pending | LP formulation, carbon/cost saving vs dumb charging baseline |
 | 8. Local Forecast API | Pending | FastAPI wrapping the trained models and optimiser |
-| 9. Cloud Deployment | Pending | Migrate to UpCloud + GCP: Kafka, BigQuery, Cloud Run, Dataflow |
+| 10. Portfolio Dashboard | Pending | Streamlit app surfacing all graphics, forecasts, and optimiser results |
+
+### Cloud + Kafka track
+
+| Epic | Status | Description |
+|---|---|---|
+| DB-1. Databricks exploration | In progress | Bronze/Silver/Gold Delta tables, 14 regional LightGBM models via `applyInPandas`; see breakdown below |
+| DB-2. Regional weather features | Pending | Add weather (wind speed, solar irradiance) to Databricks Silver/Gold — key gap for Wales/South West models |
+| 9. Cloud Deployment | Pending | UpCloud Kafka VM → GCP: Dataflow, BigQuery, Cloud Run microservices; see `EV_Charging_Cloud_Native_Architecture_Brief.md` |
+
+> **Full cloud architecture:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the Kafka PRDs, GCP service breakdown, cost estimate, and parallelisation plan.
+
+### System diagrams
+
+| Task | Status |
+|---|---|
+| Local pipeline flow diagram (Mermaid — renders in README) | To do |
+| Cloud architecture diagram (`diagrams` Python package — PNG with GCP/Kafka logos) | To do |
+| Databricks Bronze/Silver/Gold data flow diagram | To do |
+
+### Epic DB-1 — Databricks exploration detail
+
+| Task | Status |
+|---|---|
+| `01_bronze_carbon_intensity_regional` — fetch 14 UK regions × 336 half-hour periods from National Grid ESO API to Delta | Done |
+| `02_silver_carbon_intensity_regional` — clean, validate, flag nulls, write to Silver Delta table | Done |
+| `03_gold_carbon_intensity_regional` — rolling avg, lag features (t-1, t-2, t-48, t-336), write to Gold Delta table | Done |
+| `04_train_regional_models` — `applyInPandas` to train P10/P50/P90 LightGBM per region (14 regions × 3 alphas × 5 folds = 252 fits) | Done |
+| **DB-1.5** Add `fetch_regional_weather()` to `src/data/collectors/weather.py` — lat/lon for all 14 DNO regions, matching region IDs in carbon intensity data | To do |
+| **DB-1.6** `05_bronze_weather_regional` notebook — call `fetch_regional_weather()` via `sys.path` import, write to `bronze_weather_regional` Delta table | To do |
+| **DB-1.7** Commit existing Databricks notebooks (`01`–`04`) to `notebooks/databricks/` so they're visible on GitHub — add folder `README.md` explaining the medallion structure | To do |
+| **DB-1.8** Update README Databricks section — dedicated Bronze→Silver→Gold→Models Mermaid diagram | To do |
+| **DB-1.9** Update portfolio `PLAN.md` — add Databricks as a dedicated showcase block on the EV project page (what to screenshot, what to write up) | To do |
+| Add weather features to Silver/Gold and retrain regional models | To do |
+| Compare GB single model vs regional models on same test set | To do |
+| Log summary metrics to MLflow from the Databricks driver | To do |
+| **Viz:** pinball loss by region — barh chart comparing all 14 regions | To do |
+
+### Epic 9 — Cloud Deployment detail (Kafka-first)
+
+Kafka is the contract boundary between all microservices. It must exist before any cloud service is built. See [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for full PRDs.
+
+| Phase | Task | Status |
+|---|---|---|
+| 9.1 | UpCloud VM: Ubuntu 24.04, Kafka 3.7, SASL/SSL, 6 topics provisioned | To do |
+| 9.2 | GCP infrastructure: BigQuery, Cloud Run, GCS, Dataflow, Secret Manager (Terraform) | To do |
+| 9.3 | Go Grid Data Ingestor — polls APIs, publishes to Kafka every 30 min | To do |
+| 9.4 | Dataflow Kafka→BigQuery pipeline for 3 topics | To do |
+| 9.5 | Python Feature Engineering consumer — Kafka → DuckDB → BigQuery | To do |
+| 9.6 | Python ML Forecasting service — BigQuery → LightGBM → `/forecast` endpoint | To do |
+| 9.7 | Go Charging Optimiser — Kafka consumer, LP solve, publishes to `charging.schedules.optimised` | To do |
+| 9.8 | Streamlit Dashboard on Cloud Run | To do |
 
 ### Epic 5 — ML Model Training detail
 
@@ -104,10 +225,58 @@ energy-forecasting/
 | LightGBM quantile trainer P10/P50/P90 (`trainer.py`) | Done |
 | Training pipeline with MLflow tracking (`run_training_pipeline.py`) | Done |
 | SHAP analysis: beeswarm + bar plots (`shap_analysis.py`) | Done |
-| Quantile monotonicity check (P10 <= P50 <= P90) | To do |
-| Evaluate P10/P50/P90 vs baselines using pinball loss | To do |
-| Save model artefacts to `saved_models/YYYY-MM-DD/` | To do |
-| Load latest model artefacts | To do |
+| Quantile monotonicity check (P10 <= P50 <= P90) | Done |
+| Evaluate P10/P50/P90 vs baselines using pinball loss | Done |
+| Save model artefacts to `saved_models/YYYY-MM-DD/` | Done |
+| Load latest model artefacts | Done |
+| **Viz:** Forecast uncertainty bands — actuals overlaid on shaded P10/P50/P90 | To do |
+| **Viz:** Pinball loss comparison bar chart — LightGBM vs persistence vs seasonal naive | To do |
+| **Viz:** Quantile calibration plot — % actuals captured within P10–P90 band | To do |
+| **Viz:** SHAP waterfall plots — per-prediction explainability ("why high carbon at 6pm Friday?") | To do |
+
+### Epic 6 — EV Behaviour Model detail
+
+| Task | Status |
+|---|---|
+| Load and clean ACN session data | To do |
+| Fit Gaussian Mixture Model on arrival time + energy draw | To do |
+| Session sampler from fitted GMM | To do |
+| **Viz:** Charging session arrival heatmap — hour-of-day × day-of-week intensity | To do |
+| **Viz:** Energy draw distribution — GMM components overlaid on ACN histogram | To do |
+
+### Epic 7 — Charging Optimiser detail
+
+| Task | Status |
+|---|---|
+| LP formulation: minimise carbon cost over charging horizon | To do |
+| Integrate P10/P50/P90 forecasts as carbon signal | To do |
+| Constraint handling: session window, battery capacity, grid limits | To do |
+| Carbon/cost saving vs dumb (immediate full charge) baseline | To do |
+| **Viz:** Carbon-optimal charging window heatmap — hour × weekday, colour = median predicted carbon intensity | To do |
+| **Viz:** Carbon savings chart — optimised vs dumb charging, cumulative over time | To do |
+
+### Epic 8 — Local Forecast API detail
+
+| Task | Status |
+|---|---|
+| FastAPI app scaffold with health endpoint | To do |
+| `/forecast` endpoint — return P10/P50/P90 for next N periods | To do |
+| `/optimise` endpoint — return optimal charge schedule for a session | To do |
+| Regional carbon intensity data collection (Carbon Intensity API regional endpoint) | To do |
+| **Viz:** UK regional carbon intensity map — Plotly choropleth of GB regions, colour = live/forecast carbon | To do |
+| **Viz:** Generation mix stacked area chart — gas/wind/nuclear/solar/hydro over time, animated or interactive | To do |
+
+### Epic 10 — Portfolio Dashboard detail
+
+| Task | Status |
+|---|---|
+| Streamlit app scaffold with sidebar navigation | To do |
+| Forecast page — live P10/P50/P90 bands chart with recent actuals | To do |
+| Grid page — generation mix stacked area + UK regional carbon map | To do |
+| EV demand page — session arrival heatmap + energy draw distribution | To do |
+| Optimiser page — charging window heatmap + carbon savings comparison | To do |
+| Model explainability page — SHAP beeswarm, bar, waterfall | To do |
+| Deploy dashboard (Streamlit Cloud or HuggingFace Spaces) | To do |
 
 ---
 
@@ -115,7 +284,7 @@ energy-forecasting/
 
 This project was started to allow me to apply my ML skills to energy related problems specifically. All ML code is built by me, but the set up of other parts of the pipeline such as the data collection and feature engineering is built using **Ralph Loops**, an autonomous multi-agent development pattern where an AI agent reads a PRD, implements one task at a time, runs tests, commits, and iterates until the PRD is complete. Getting LLMs to build much of the data pipeline has allowed me to focus much more on the ML training and optimisation work, which is the core of this project.
 
-I plan to make this project locally first, then move to the production cloud version when I have time.
+The local version is the primary development environment. The Databricks version is being built in parallel as a cloud-scale implementation of the same pipeline.
 
 
 ---
