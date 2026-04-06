@@ -190,7 +190,12 @@ The project runs as two parallel tracks: a **local pipeline** for rapid ML itera
 | `02_silver_carbon_intensity_regional` — clean, validate, flag nulls, write to Silver Delta table | Done |
 | `03_gold_carbon_intensity_regional` — rolling avg, lag features (t-1, t-2, t-48, t-336), write to Gold Delta table | Done |
 | `04_train_regional_models` — `applyInPandas` to train P10/P50/P90 LightGBM per region (14 regions × 3 alphas × 5 folds = 252 fits) | Done |
-| Add regional weather features to Silver/Gold (root cause of weak South Wales / South West models) | To do |
+| **DB-1.5** Add `fetch_regional_weather()` to `src/data/collectors/weather.py` — lat/lon for all 14 DNO regions, matching region IDs in carbon intensity data | To do |
+| **DB-1.6** `05_bronze_weather_regional` notebook — call `fetch_regional_weather()` via `sys.path` import, write to `bronze_weather_regional` Delta table | To do |
+| **DB-1.7** Commit existing Databricks notebooks (`01`–`04`) to `notebooks/databricks/` so they're visible on GitHub — add folder `README.md` explaining the medallion structure | To do |
+| **DB-1.8** Update README Databricks section — dedicated Bronze→Silver→Gold→Models Mermaid diagram | To do |
+| **DB-1.9** Update portfolio `PLAN.md` — add Databricks as a dedicated showcase block on the EV project page (what to screenshot, what to write up) | To do |
+| Add weather features to Silver/Gold and retrain regional models | To do |
 | Compare GB single model vs regional models on same test set | To do |
 | Log summary metrics to MLflow from the Databricks driver | To do |
 | **Viz:** pinball loss by region — barh chart comparing all 14 regions | To do |
