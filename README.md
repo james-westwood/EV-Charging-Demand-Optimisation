@@ -92,7 +92,58 @@ energy-forecasting/
 | 6. EV Behaviour Model | Pending | GMM fit on ACN session data, session sampler |
 | 7. Charging Optimiser | Pending | LP formulation, carbon/cost saving vs dumb charging baseline |
 | 8. Local Forecast API | Pending | FastAPI wrapping the trained models and optimiser |
-| 9. Cloud Deployment | Pending | Migrate to UpCloud + GCP: Kafka, BigQuery, Cloud Run, Dataflow |
+| 9. Cloud Deployment | Pending | UpCloud Kafka VM → GCP: Dataflow, BigQuery, Cloud Run microservices; see `EV_Charging_Cloud_Native_Architecture_Brief.md` |
+| 10. Portfolio Dashboard | Pending | Streamlit app surfacing all graphics, forecasts, and optimiser results |
+
+### Cloud + Kafka track
+
+| Epic | Status | Description |
+|---|---|---|
+| DB-1. Databricks exploration | In progress | Bronze/Silver/Gold Delta tables, 14 regional LightGBM models via `applyInPandas`; see breakdown below |
+| DB-2. Regional weather features | Pending | Add weather (wind speed, solar irradiance) to Databricks Silver/Gold — key gap for Wales/South West models |
+
+> **Full cloud architecture:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the Kafka PRDs, GCP service breakdown, cost estimate, and parallelisation plan.
+
+### System diagrams
+
+| Task | Status |
+|---|---|
+| Local pipeline flow diagram (Mermaid — renders in README) | To do |
+| Cloud architecture diagram (`diagrams` Python package — PNG with GCP/Kafka logos) | To do |
+| Databricks Bronze/Silver/Gold data flow diagram | To do |
+
+### Epic DB-1 — Databricks exploration detail
+
+| Task | Status |
+|---|---|
+| `01_bronze_carbon_intensity_regional` — fetch 14 UK regions × 336 half-hour periods from National Grid ESO API to Delta | Done |
+| `02_silver_carbon_intensity_regional` — clean, validate, flag nulls, write to Silver Delta table | Done |
+| `03_gold_carbon_intensity_regional` — rolling avg, lag features (t-1, t-2, t-48, t-336), write to Gold Delta table | Done |
+| `04_train_regional_models` — `applyInPandas` to train P10/P50/P90 LightGBM per region (14 regions × 3 alphas × 5 folds = 252 fits) | Done |
+| **DB-1.5** Add `fetch_regional_weather()` to `src/data/collectors/weather.py` — lat/lon for all 14 DNO regions, matching region IDs in carbon intensity data | Done |
+| **DB-1.6** `05_bronze_weather_regional` notebook — call `fetch_regional_weather()` via `sys.path` import, write to `bronze_weather_regional` Delta table | To do |
+| **DB-1.7** Commit existing Databricks notebooks (`01`–`04`) to `notebooks/databricks/` so they're visible on GitHub — add folder `README.md` explaining the medallion structure | To do |
+| **DB-1.8** Update README Databricks section — dedicated Bronze→Silver→Gold→Models Mermaid diagram | To do |
+| **DB-1.9** Update portfolio `PLAN.md` — add Databricks as a dedicated showcase block on the EV project page (what to screenshot, what to write up) | To do |
+| Add weather features to Silver/Gold and retrain regional models | To do |
+| Compare GB single model vs regional models on same test set | To do |
+| Log summary metrics to MLflow from the Databricks driver | To do |
+| **Viz:** pinball loss by region — barh chart comparing all 14 regions | To do |
+
+### Epic 9 — Cloud Deployment detail (Kafka-first)
+
+Kafka is the contract boundary between all microservices. It must exist before any cloud service is built. See [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for full PRDs.
+
+| Phase | Task | Status |
+|---|---|---|
+| 9.1 | UpCloud VM: Ubuntu 24.04, Kafka 3.7, SASL/SSL, 6 topics provisioned | To do |
+| 9.2 | GCP infrastructure: BigQuery, Cloud Run, GCS, Dataflow, Secret Manager (Terraform) | To do |
+| 9.3 | Go Grid Data Ingestor — polls APIs, publishes to Kafka every 30 min | To do |
+| 9.4 | Dataflow Kafka→BigQuery pipeline for 3 topics | To do |
+| 9.5 | Python Feature Engineering consumer — Kafka → DuckDB → BigQuery | To do |
+| 9.6 | Python ML Forecasting service — BigQuery → LightGBM → `/forecast` endpoint | To do |
+| 9.7 | Go Charging Optimiser — Kafka consumer, LP solve, publishes to `charging.schedules.optimised` | To do |
+| 9.8 | Streamlit Dashboard on Cloud Run | To do |
 
 ### Epic 5 — ML Model Training detail
 
