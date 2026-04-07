@@ -82,25 +82,26 @@ def fetch_regional_carbon_intensity(from_dt: datetime, to_dt: datetime) -> pd.Da
 
     return df
 
-def fetch_regional_carbon_intensity_by_region_in_chunks(end, total_days=180, chunk_days=7):
-    """Fetches the carbon intensity data for X amount of days in Y chunks  from the API. 
-    
-    This is needed because the API has a limit per request. 
-    
+def fetch_regional_carbon_intensity_by_region_in_chunks(from_dt: datetime, to_dt: datetime, chunk_days: int = 7) -> pd.DataFrame:
+    """Fetch regional carbon intensity data for a date range in chunks.
+
+    This is needed because the API has a limit per request.
+
     Args:
-        end: End datetime (UTC).
-        total_days: Total days to fetch.
-        chunk_days: Number of days to fetch per request.
+        from_dt: Start datetime (UTC).
+        to_dt: End datetime (UTC).
+        chunk_days: Number of days per API request.
 
     Returns:
-        DataFrame with columns [timestamp, region_id, region_name, carbon_intensity]"""
+        DataFrame with columns [period_from, period_to, region_id, dno_region_name, region_name, carbon_intensity, intensity_index]
+    """
     chunks = []
-    chunk_end = end
-    days_remaining = total_days
+    chunk_end = to_dt
+    days_remaining = (to_dt - from_dt).days
 
     while days_remaining > 0:
         days_to_fetch = min(chunk_days, days_remaining)
-        chunk_start = chunk_end - timedelta(days=days_to_fetch)
+        chunk_start = max(chunk_end - timedelta(days=days_to_fetch), from_dt)
 
         from_str = chunk_start.strftime("%Y-%m-%dT%H:%MZ")
         to_str = chunk_end.strftime("%Y-%m-%dT%H:%MZ")
