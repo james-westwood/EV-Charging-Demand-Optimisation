@@ -1,4 +1,10 @@
-"""Generation mix data collector for api.carbonintensity.org.uk."""
+"""Generation mix data collector for api.carbonintensity.org.uk.
+
+TODO: add fetch_regional_generation_mix() — the regional carbon intensity endpoint
+(/regional/intensity/{from}/{to}) includes a `generationmix` list per region per period.
+This is richer signal than the national mix (e.g. high wind in Scotland, high solar in
+South East) and worth pulling into the Bronze layer alongside regional carbon intensity.
+"""
 
 from datetime import datetime, timezone
 

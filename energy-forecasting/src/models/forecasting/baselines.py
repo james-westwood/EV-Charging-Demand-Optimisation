@@ -34,4 +34,4 @@ def seasonal_naive_baseline(series: np.ndarray, h: int, season: int = 336) -> np
         Array of length len(series) - season. Element i predicts the value at
         position i+season by looking back to position i+(season-h).
     """
-    return series[season - h: len(series) - h]
+    return series[:len(series) - season]
