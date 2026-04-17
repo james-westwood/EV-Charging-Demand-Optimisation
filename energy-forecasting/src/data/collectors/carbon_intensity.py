@@ -1,16 +1,16 @@
 """Carbon intensity data collector for api.carbonintensity.org.uk."""
 
 from datetime import datetime, timezone
-
+import requests
 import httpx
 import pandas as pd
+from datetime import timedelta
 
 from src.logging_config import get_logger
 
-logger = get_logger(__name__)
+diary_of_a_cpu = get_logger("__name__")
 
 _BASE_URL = "https://api.carbonintensity.org.uk"
-
 
 def fetch_carbon_intensity(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
     """Fetch carbon intensity data for a date range.
@@ -27,7 +27,7 @@ def fetch_carbon_intensity(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
     to_str = _fmt(to_dt)
     url = f"{_BASE_URL}/intensity/{from_str}/{to_str}"
 
-    logger.info("Fetching carbon intensity", extra={"from": from_str, "to": to_str})
+    diary_of_a_cpu.info("Fetching carbon intensity", extra={"from": from_str, "to": to_str})
 
     response = httpx.get(url, timeout=30)
     response.raise_for_status()
@@ -50,8 +50,110 @@ def fetch_carbon_intensity(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
         df["intensity_actual"] = df["intensity_actual"].astype("Int64")
         df["intensity_forecast"] = df["intensity_forecast"].astype("Int64")
 
-    logger.info("Fetched %d rows of carbon intensity data", len(df))
+    diary_of_a_cpu.info("Fetched %d rows of carbon intensity data", len(df))
     return df
+
+
+def fetch_regional_carbon_intensity(from_dt: datetime, to_dt: datetime) -> pd.DataFrame:
+    """Fetch regional carbon intensity data for a date range.
+
+    The carbon intensity data is structured like:
+    Top-level keys:['data']
+    First period keys: ['from', 'to', 'regions']
+    First region keys: ['regionid', 'dnoregion', 'shortname', 'intensity', 'generationmix']  
+
+    Args:
+        from_dt: Start datetime (UTC).
+        to_dt: End datetime (UTC).
+
+    Returns:
+        DataFrame with columns [timestamp, region_id, region_name, carbon_intensity]
+    """
+    from_str = _fmt(from_dt)
+    to_str = _fmt(to_dt)
+    url = f"{_BASE_URL}/regional/intensity/{from_str}/{to_str}"
+
+    response = httpx.get(url, timeout=30)
+    response.raise_for_status()
+    payload = response.json()
+
+    rows = _unpack_rows_from_data_dict(payload)
+    df = _rows_into_df(rows)
+
+    return df
+
+def fetch_regional_carbon_intensity_by_region_in_chunks(from_dt: datetime, to_dt: datetime, chunk_days: int = 7) -> pd.DataFrame:
+    """Fetch regional carbon intensity data for a date range in chunks.
+
+    This is needed because the API has a limit per request.
+
+    Args:
+        from_dt: Start datetime (UTC).
+        to_dt: End datetime (UTC).
+        chunk_days: Number of days per API request.
+
+    Returns:
+        DataFrame with columns [period_from, period_to, region_id, dno_region_name, region_name, carbon_intensity, intensity_index]
+    """
+    chunks = []
+    chunk_end = to_dt
+    days_remaining = (to_dt - from_dt).days
+
+    while days_remaining > 0:
+        days_to_fetch = min(chunk_days, days_remaining)
+        chunk_start = max(chunk_end - timedelta(days=days_to_fetch), from_dt)
+
+        from_str = chunk_start.strftime("%Y-%m-%dT%H:%MZ")
+        to_str = chunk_end.strftime("%Y-%m-%dT%H:%MZ")
+
+        print(f"Fetching {from_str} → {to_str}")
+        url = f"https://api.carbonintensity.org.uk/regional/intensity/{from_str}/{to_str}"
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        chunks.append(response.json())
+
+        chunk_end = chunk_start
+        days_remaining -= days_to_fetch
+    
+    diary_of_a_cpu.info(f"Fetched %d chunks of carbon intensity data", len(chunks))
+
+    all_rows = []
+    for chunk in chunks:
+        all_rows.extend(_unpack_rows_from_data_dict(chunk))
+
+    df = _rows_into_df(all_rows)
+
+    diary_of_a_cpu.info(f"Fetched %d rows of carbon intensity data for %d regions", len(df), len(df["region_name"].unique()))
+    return df
+
+
+def _rows_into_df(rows):
+    df = pd.DataFrame(rows, columns=["period_from", "period_to", "region_id", "dno_region_name", "region_name", "carbon_intensity", "intensity_index"])
+    if not df.empty:
+        df["carbon_intensity"] = df["carbon_intensity"].astype("Int64")
+
+    diary_of_a_cpu.info("Fetched %d rows of carbon intensity data for %d regions", len(df), len(df["region_name"].unique()))
+
+    return df
+
+def _unpack_rows_from_data_dict(payload):
+    rows = []
+    for entry in payload.get("data", []):
+        period_from = pd.Timestamp(entry["from"], tz="UTC")
+        period_to = pd.Timestamp(entry["to"], tz="UTC")
+        for region in entry.get("regions", []):
+            rows.append(
+                {   
+                    "period_from": period_from,
+                    "period_to": period_to,
+                    "region_id": region.get("regionid"),
+                    "dno_region_name": region.get("dnoregion"),
+                    "region_name": region.get("shortname"),
+                    "carbon_intensity": region.get("intensity", {}).get("forecast"),
+                    "intensity_index": region.get("intensity", {}).get("index") 
+                }
+            )
+    return rows
 
 
 def _fmt(dt: datetime) -> str:

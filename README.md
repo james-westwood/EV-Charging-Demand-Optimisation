@@ -162,15 +162,16 @@ The project runs as two parallel tracks: a **local pipeline** for rapid ML itera
 | 6. EV Behaviour Model | Pending | GMM fit on ACN session data, session sampler |
 | 7. Charging Optimiser | Pending | LP formulation, carbon/cost saving vs dumb charging baseline |
 | 8. Local Forecast API | Pending | FastAPI wrapping the trained models and optimiser |
+| 9. Cloud Deployment | Pending | UpCloud Kafka VM → GCP: Dataflow, BigQuery, Cloud Run microservices; see `EV_Charging_Cloud_Native_Architecture_Brief.md` |
 | 10. Portfolio Dashboard | Pending | Streamlit app surfacing all graphics, forecasts, and optimiser results |
 
 ### Cloud + Kafka track
 
 | Epic | Status | Description |
 |---|---|---|
-| DB-1. Databricks exploration | In progress | Bronze/Silver/Gold Delta tables, 14 regional LightGBM models via `applyInPandas`; see breakdown below |
-| DB-2. Regional weather features | Pending | Add weather (wind speed, solar irradiance) to Databricks Silver/Gold — key gap for Wales/South West models |
-| 9. Cloud Deployment | Pending | UpCloud Kafka VM → GCP: Dataflow, BigQuery, Cloud Run microservices; see `EV_Charging_Cloud_Native_Architecture_Brief.md` |
+| DB-1. Databricks exploration | Complete | Bronze/Silver/Gold Delta tables, 14 regional LightGBM models via `applyInPandas` |
+| DB-2. Regional weather features | Complete | Weather Bronze/Silver/Gold pipeline, joined to carbon intensity, regional models retrained with weather features, visualisations |
+| DB-3. MLflow + DABs | Pending | Log regional models to MLflow, package pipeline as Databricks Asset Bundle |
 
 > **Full cloud architecture:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the Kafka PRDs, GCP service breakdown, cost estimate, and parallelisation plan.
 
@@ -190,7 +191,7 @@ The project runs as two parallel tracks: a **local pipeline** for rapid ML itera
 | `02_silver_carbon_intensity_regional` — clean, validate, flag nulls, write to Silver Delta table | Done |
 | `03_gold_carbon_intensity_regional` — rolling avg, lag features (t-1, t-2, t-48, t-336), write to Gold Delta table | Done |
 | `04_train_regional_models` — `applyInPandas` to train P10/P50/P90 LightGBM per region (14 regions × 3 alphas × 5 folds = 252 fits) | Done |
-| **DB-1.5** Add `fetch_regional_weather()` to `src/data/collectors/weather.py` — lat/lon for all 14 DNO regions, matching region IDs in carbon intensity data | To do |
+| **DB-1.5** Add `fetch_regional_weather()` to `src/data/collectors/weather.py` — lat/lon for all 14 DNO regions, matching region IDs in carbon intensity data | Done |
 | **DB-1.6** `05_bronze_weather_regional` notebook — call `fetch_regional_weather()` via `sys.path` import, write to `bronze_weather_regional` Delta table | To do |
 | **DB-1.7** Commit existing Databricks notebooks (`01`–`04`) to `notebooks/databricks/` so they're visible on GitHub — add folder `README.md` explaining the medallion structure | To do |
 | **DB-1.8** Update README Databricks section — dedicated Bronze→Silver→Gold→Models Mermaid diagram | To do |
@@ -375,3 +376,38 @@ For carbon intensity, an energy trader would tell you:
 
 
 - Shows  that gas is second biggest driver of P50 predictions, but far behind, 13.58 vs 31.64
+
+---
+
+## Databricks Regional Modelling
+
+A parallel Databricks pipeline was built alongside the local MVP to demonstrate production-scale data engineering. It follows the **Medallion architecture** (Bronze → Silver → Gold → Models) and trains separate LightGBM quantile models for each of the 14 UK DNO regions.
+
+### Pipeline overview
+
+| Layer | Table | Description |
+|---|---|---|
+| Bronze | `bronze_carbon_intensity_regional` | Raw regional carbon intensity fetched in 7-day chunks from National Grid ESO API |
+| Bronze | `bronze_weather_regional` | Hourly weather (temperature, wind speed, solar radiation) for all 14 DNO regions via Open-Meteo |
+| Silver | `silver_carbon_intensity_regional` | Cleaned, validated, null-flagged carbon intensity data |
+| Silver | `silver_weather_regional` | Upsampled 30-min weather (forward-fill via `applyInPandas`), validation flags |
+| Gold | `gold_carbon_weather_regional` | Joined carbon intensity + weather, lag features (t-1, t-2, t-48, t-336), 7-day rolling averages |
+| Models | `/Volumes/workspace/default/models/` | 14 × 3 quantile LightGBM models trained via `applyInPandas` |
+
+All tables use **MERGE INTO upserts** for idempotent writes — running any notebook twice produces no duplicates.
+
+### Regional model accuracy
+
+P50 pinball loss was compared across 14 UK regions for two model variants: carbon intensity features only (baseline) and carbon intensity + weather features.
+
+![Regional model comparison](energy-forecasting/docs/images/comapre_models.png)
+
+Weather features produced a modest **0.5% average improvement** in P50 pinball loss (3.728 → 3.710). The improvement was more pronounced in regions with variable renewable generation. South Wales and South West England remain the hardest regions to forecast — driven by highly variable wind and solar output that a single representative lat/lon point cannot fully capture.
+
+### Regional accuracy map
+
+The map below shows P50 pinball loss geographically across all 14 DNO regions. Larger, yellower circles indicate lower model accuracy (higher error).
+
+![P50 Pinball Loss by DNO Region](energy-forecasting/docs/images/Models_Geoplot.png)
+
+Scotland (North and South) and North East England are the easiest to forecast — relatively stable generation mix dominated by hydro and offshore wind. The south-west peninsula is the most challenging due to high distributed solar and coastal wind variability.
