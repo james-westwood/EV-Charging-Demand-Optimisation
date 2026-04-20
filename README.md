@@ -192,14 +192,14 @@ The project runs as two parallel tracks: a **local pipeline** for rapid ML itera
 | `03_gold_carbon_intensity_regional` — rolling avg, lag features (t-1, t-2, t-48, t-336), write to Gold Delta table | Done |
 | `04_train_regional_models` — `applyInPandas` to train P10/P50/P90 LightGBM per region (14 regions × 3 alphas × 5 folds = 252 fits) | Done |
 | **DB-1.5** Add `fetch_regional_weather()` to `src/data/collectors/weather.py` — lat/lon for all 14 DNO regions, matching region IDs in carbon intensity data | Done |
-| **DB-1.6** `05_bronze_weather_regional` notebook — call `fetch_regional_weather()` via `sys.path` import, write to `bronze_weather_regional` Delta table | To do |
-| **DB-1.7** Commit existing Databricks notebooks (`01`–`04`) to `notebooks/databricks/` so they're visible on GitHub — add folder `README.md` explaining the medallion structure | To do |
-| **DB-1.8** Update README Databricks section — dedicated Bronze→Silver→Gold→Models Mermaid diagram | To do |
-| **DB-1.9** Update portfolio `PLAN.md` — add Databricks as a dedicated showcase block on the EV project page (what to screenshot, what to write up) | To do |
-| Add weather features to Silver/Gold and retrain regional models | To do |
+| **DB-1.6** `05_bronze_weather_regional` notebook — call `fetch_regional_weather()` via `sys.path` import, write to `bronze_weather_regional` Delta table | Done |
+| **DB-1.7** Commit Databricks notebooks (`01`–`09`) to `notebooks/` so they're visible on GitHub | Done |
+| **DB-1.8** Update README Databricks section — results, pipeline table, bar chart, geoplot | Done |
+| **DB-1.9** Update portfolio `PLAN.md` — add Databricks as a dedicated showcase block on the EV project page | To do |
+| Add weather features to Silver/Gold and retrain regional models | Done |
+| **Viz:** pinball loss by region — grouped bar chart baseline vs weather, P50 pinball loss geoplot | Done |
 | Compare GB single model vs regional models on same test set | To do |
 | Log summary metrics to MLflow from the Databricks driver | To do |
-| **Viz:** pinball loss by region — barh chart comparing all 14 regions | To do |
 
 ### Epic 9 — Cloud Deployment detail (Kafka-first)
 
@@ -400,7 +400,7 @@ All tables use **MERGE INTO upserts** for idempotent writes — running any note
 
 P50 pinball loss was compared across 14 UK regions for two model variants: carbon intensity features only (baseline) and carbon intensity + weather features.
 
-![Regional model comparison](energy-forecasting/docs/images/comapre_models.png)
+![Regional model comparison](energy-forecasting/docs/images/compare_models.png)
 
 Weather features produced a modest **0.5% average improvement** in P50 pinball loss (3.728 → 3.710). The improvement was more pronounced in regions with variable renewable generation. South Wales and South West England remain the hardest regions to forecast — driven by highly variable wind and solar output that a single representative lat/lon point cannot fully capture.
 
