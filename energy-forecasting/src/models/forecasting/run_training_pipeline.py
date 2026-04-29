@@ -5,7 +5,6 @@
 5. Calculate calibration and log to MLflow
 """
 
-import numpy as np
 
 import mlflow
 
