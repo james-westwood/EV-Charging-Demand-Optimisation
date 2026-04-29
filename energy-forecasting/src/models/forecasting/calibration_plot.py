@@ -1,4 +1,4 @@
-
+import numpy as np
 
 
 def calculate_calibration(
@@ -36,7 +36,44 @@ def calculate_calibration(
             "p90_claimed": p90_claimed,
             "p90_observed": p90_observed,  # Replace with your calculation
         }
-# Questions to guide your implementation:
-# 1. How do you calculate what % of actuals fell below P10 predictions? (Hint: compare two arrays, count Trues, divide by length)
-# 2. Why do we need the mask = ~np.isnan(oof_preds) pattern from trainer.py:63? What happens to early rows?
-# 3. What does "observed frequency" mean when P10 claimed 0.1 and you calculate 0.15? Is the model overconfident or underconfident?
+
+
+def plot_calibration(
+    calibration_results: dict[str, float],
+    save_path: str | None = None,
+) -> None:
+    """
+    Create a calibration plot: claimed quantile vs observed frequency.
+
+    Args:
+        calibration_results: output of calculate_calibration
+        save_path: if given, save PNG there; otherwise renders interactively
+    """
+    import matplotlib.pyplot as plt
+
+    claimed = [
+        calibration_results["p10_claimed"],
+        calibration_results["p50_claimed"],
+        calibration_results["p90_claimed"],
+    ]
+    observed = [
+        calibration_results["p10_observed"],
+        calibration_results["p50_observed"],
+        calibration_results["p90_observed"],
+    ]
+
+    plt.figure(figsize=(6, 6))
+    plt.plot([0, 1], [0, 1], "r--", alpha=0.5, label="perfect")
+    plt.scatter(claimed, observed, s=100, alpha=0.7)
+    plt.xlabel("Claimed quantile")
+    plt.ylabel("Observed frequency")
+    plt.title("Quantile calibration")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=150)
+        plt.close()
+    else:
+        plt.show()
