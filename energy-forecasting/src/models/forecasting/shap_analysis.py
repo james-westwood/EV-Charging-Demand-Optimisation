@@ -81,7 +81,7 @@ def plot_waterfall(
     features_df = pd.DataFrame([feature_row])
 
     shap_values = explainer.shap_values(features_df)
-    base_value = explainer.expected_value
+    base_value = expected_value if expected_value is not None else explainer.expected_value
 
     plt.figure()
     shap.plots.waterfall(

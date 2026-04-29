@@ -5,9 +5,8 @@
 5. Calculate calibration and log to MLflow
 """
 
-import numpy as np
-
 import mlflow
+import numpy as np
 
 from src.features.store import load_features
 from src.models.forecasting.artefacts import save_artefacts
@@ -32,9 +31,10 @@ def train_and_save(feature_df):
     alphas = [0.1, 0.5, 0.9]
     for alpha in alphas:
         model, oof = train_quantile_lgbm(X, y, alpha=alpha)
+        mask = ~np.isnan(oof)
         loss = pinball_loss(alpha=alpha,
-                            predictions=oof,
-                            actuals=y)
+                            predictions=oof[mask],
+                            actuals=y.values[mask])
         print(f"Alpha: {alpha}, Loss: {loss}")
         model_dict[f"p{int(alpha*100)}"] = model
         oof_preds[f"p{int(alpha*100)}"] = oof
@@ -56,8 +56,8 @@ def train_and_save(feature_df):
             mlflow.log_metric(key, value)
 
         # Plot and save calibration plot
-        plot_calibration(calibration, save_path="calibration_plot.png")
-        mlflow.log_artifact("calibration_plot.png")
+        plot_calibration(calibration, save_path="calibration_plot.html")
+        mlflow.log_artifact("calibration_plot.html")
 
 if __name__ == "__main__":
     feature_df = load_features()

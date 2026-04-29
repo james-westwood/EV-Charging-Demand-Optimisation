@@ -230,11 +230,11 @@ Kafka is the contract boundary between all microservices. It must exist before a
 | Evaluate P10/P50/P90 vs baselines using pinball loss | Done |
 | Save model artefacts to `saved_models/YYYY-MM-DD/` | Done |
 | Load latest model artefacts | Done |
-| **Viz:** Forecast uncertainty bands — actuals overlaid on shaded P10/P50/P90 | To do |
-| **Viz:** Pinball loss comparison bar chart — LightGBM vs persistence vs seasonal naive | To do |
-| **Viz:** Quantile calibration plot — `calculate_calibration()` logic (`calibration_plot.py`) | In progress |
-| **Viz:** Quantile calibration plot — plotting function + pipeline integration | To do |
-| **Viz:** SHAP waterfall plots — per-prediction explainability ("why high carbon at 6pm Friday?") | To do |
+| **Viz:** Forecast uncertainty bands — actuals overlaid on shaded P10/P50/P90 | Done |
+| **Viz:** Pinball loss comparison bar chart — LightGBM vs persistence vs seasonal naive | Done |
+| **Viz:** Quantile calibration plot — `calculate_calibration()` logic (`calibration_plot.py`) | Done |
+| **Viz:** Quantile calibration plot — plotting function + pipeline integration | Done |
+| **Viz:** SHAP waterfall plots — per-prediction explainability ("why high carbon at 6pm Friday?") | Done |
 
 ### Epic 6 — EV Behaviour Model detail
 

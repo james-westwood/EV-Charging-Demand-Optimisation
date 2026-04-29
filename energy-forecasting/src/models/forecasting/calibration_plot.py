@@ -9,34 +9,65 @@ def calculate_calibration(
     p90_preds: np.ndarray,
 ) -> dict[str, float]:
     """
+    Calculate claimed vs observed quantile coverage.
+
+    Any row containing a non-finite actual or prediction value is excluded
+    from the observed-frequency calculation to handle NaN OOF predictions
+    that arise from time-series CV gaps.
+
     Returns a dict with keys like:
     - 'p10_claimed': 0.1
-    - 'p10_observed': 0.12  (or whatever you calculate)
+    - 'p10_observed': 0.12
+    - 'p50_claimed': 0.5
+    - 'p50_observed': 0.49
     - 'p90_claimed': 0.9
-    - 'p90_observed': 0.87  (or whatever you calculate)
+    - 'p90_observed': 0.87
     """
-    
-    # p10 means 10% of actuals should be below the P10 predictions
-    p10_observed = (np.sum(actuals < p10_preds)) / len(actuals)
-    
-    # p50 means 50% of actuals should be below the P50 predictions
-    p50_observed = (np.sum(actuals < p50_preds)) / len(actuals)
-    
-    # p90 means 90% of actuals should be below the P90 predictions
-    p90_observed = (np.sum(actuals < p90_preds)) / len(actuals)
+    actuals = np.asarray(actuals)
+    p10_preds = np.asarray(p10_preds)
+    p50_preds = np.asarray(p50_preds)
+    p90_preds = np.asarray(p90_preds)
+
+    valid_mask = (
+        np.isfinite(actuals)
+        & np.isfinite(p10_preds)
+        & np.isfinite(p50_preds)
+        & np.isfinite(p90_preds)
+    )
+
+    valid_count = int(np.sum(valid_mask))
+
+    if valid_count == 0:
+        p10_observed = np.nan
+        p50_observed = np.nan
+        p90_observed = np.nan
+    else:
+        valid_actuals = actuals[valid_mask]
+        valid_p10_preds = p10_preds[valid_mask]
+        valid_p50_preds = p50_preds[valid_mask]
+        valid_p90_preds = p90_preds[valid_mask]
+
+        # p10 means 10% of actuals should be below the P10 predictions
+        p10_observed = float(np.sum(valid_actuals < valid_p10_preds) / valid_count)
+
+        # p50 means 50% of actuals should be below the P50 predictions
+        p50_observed = float(np.sum(valid_actuals < valid_p50_preds) / valid_count)
+
+        # p90 means 90% of actuals should be below the P90 predictions
+        p90_observed = float(np.sum(valid_actuals < valid_p90_preds) / valid_count)
 
     p10_claimed = 0.1
     p50_claimed = 0.5
     p90_claimed = 0.9
 
     return {
-            "p10_claimed": p10_claimed,  # This is just the input value (0.1 for P10)
-            "p10_observed": p10_observed,  # Replace with your calculation
-            "p50_claimed": p50_claimed,
-            "p50_observed": p50_observed,  # Replace with your calculation
-            "p90_claimed": p90_claimed,
-            "p90_observed": p90_observed,  # Replace with your calculation
-        }
+        "p10_claimed": p10_claimed,  # Nominal coverage for the P10 quantile forecast
+        "p10_observed": p10_observed,  # Fraction of actuals below the P10 predictions
+        "p50_claimed": p50_claimed,  # Nominal coverage for the P50 quantile forecast
+        "p50_observed": p50_observed,  # Fraction of actuals below the P50 predictions
+        "p90_claimed": p90_claimed,  # Nominal coverage for the P90 quantile forecast
+        "p90_observed": p90_observed,  # Fraction of actuals below the P90 predictions
+    }
 
 
 def plot_calibration(
