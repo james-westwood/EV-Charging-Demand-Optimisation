@@ -77,16 +77,16 @@ def generate_inference_features(
 
     combined = pd.concat([history, future_df], ignore_index=True)
 
-    combined = add_penetration_features(combined)
-    combined = add_rolling_features(combined)
-    combined = add_lag_features(combined, ["carbon_intensity", "wind_pct"])
-    combined = add_calendar_features(combined)
-
+    combined = add_penetration_features(combined) # amount of wind and solar in the mix, which can be predictive of carbon intensity
+    combined = add_rolling_features(combined) # add rolling mean features for carbon intensity and wind_pct, which can help capture recent trends and smooth out noise
+    combined = add_lag_features(combined, ["carbon_intensity", "wind_pct"]) # adds t-1, t-2, t-48 (1 day), t-336 (1 week)
+    combined = add_calendar_features(combined) # adds features like hour_of_day, day_of_week, month, is_weekend, is_bank_holiday_uk.
     lag_cols = [c for c in combined.columns if "_lag_" in c]
     non_lag_cols = [c for c in combined.columns if c not in lag_cols]
-    combined = combined.dropna(subset=non_lag_cols)
+    combined = combined.dropna(subset=non_lag_cols) # drop rows with missing non-lag features them)
 
-    inference_df = combined.tail(horizon).reset_index(drop=True)
+    #  We need the last N rows because those are our inference inputs. The features that correspond to the timestamps we want predictions for
+    inference_df = combined.tail(horizon).reset_index(drop=True) 
 
     feature_cols = [c for c in inference_df.columns if c not in ["settlement_period", "carbon_intensity"]]
     return inference_df[feature_cols]
