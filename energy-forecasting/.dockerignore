@@ -1,0 +1,14 @@
+.venv/
+mlevents/
+mlruns/
+data/ev_charging.duckdb
+data/raw/
+saved_models/
+__pycache__/
+*.pyc
+.git/
+tests/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.env
