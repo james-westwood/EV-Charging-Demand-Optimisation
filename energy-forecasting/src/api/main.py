@@ -18,8 +18,6 @@ def lifespan(app: FastAPI):
     if _MODEL_BUCKET:
         app.state.models = load_latest_artefacts_from_gcs(_MODEL_BUCKET)
     else:
-        from src.models.forecasting.artefacts import load_latest_artefacts
-
         app.state.models = load_latest_artefacts()
     app.state.features = load_features()
     app.state.features_loaded_at = datetime.now(timezone.utc)
