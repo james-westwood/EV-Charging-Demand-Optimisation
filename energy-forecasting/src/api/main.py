@@ -1,4 +1,5 @@
 """FastAPI application for carbon intensity forecasting."""
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -6,13 +7,20 @@ from fastapi import FastAPI
 
 from src.api.cache import get_features_with_ttl
 from src.features.store import load_features
-from src.models.forecasting.artefacts import load_latest_artefacts
+from src.models.forecasting.artefacts import load_latest_artefacts, load_latest_artefacts_from_gcs
+
+_MODEL_BUCKET = os.getenv("MODEL_BUCKET", "")
 
 
 @asynccontextmanager
 def lifespan(app: FastAPI):
-    """Load models and features on startup, store in app.state, unload on shutdown."""
-    app.state.models = load_latest_artefacts()
+    """Load models from GCS and features on startup, store in app.state, unload on shutdown."""
+    if _MODEL_BUCKET:
+        app.state.models = load_latest_artefacts_from_gcs(_MODEL_BUCKET)
+    else:
+        from src.models.forecasting.artefacts import load_latest_artefacts
+
+        app.state.models = load_latest_artefacts()
     app.state.features = load_features()
     app.state.features_loaded_at = datetime.now(timezone.utc)
     yield
