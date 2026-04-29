@@ -171,7 +171,7 @@ The project runs as two parallel tracks: a **local pipeline** for rapid ML itera
 |---|---|---|
 | DB-1. Databricks exploration | Complete | Bronze/Silver/Gold Delta tables, 14 regional LightGBM models via `applyInPandas` |
 | DB-2. Regional weather features | Complete | Weather Bronze/Silver/Gold pipeline, joined to carbon intensity, regional models retrained with weather features, visualisations |
-| DB-3. MLflow + DABs | Pending | Log regional models to MLflow, package pipeline as Databricks Asset Bundle |
+| DB-3. MLflow + DABs | In progress | MLflow logging notebook built + job created (ID: 428455848051297); DABs packaging pending |
 
 > **Full cloud architecture:** see [`EV_Charging_Cloud_Native_Architecture_Brief.md`](./EV_Charging_Cloud_Native_Architecture_Brief.md) for the Kafka PRDs, GCP service breakdown, cost estimate, and parallelisation plan.
 
@@ -199,7 +199,7 @@ The project runs as two parallel tracks: a **local pipeline** for rapid ML itera
 | Add weather features to Silver/Gold and retrain regional models | Done |
 | **Viz:** pinball loss by region — grouped bar chart baseline vs weather, P50 pinball loss geoplot | Done |
 | Compare GB single model vs regional models on same test set | To do |
-| Log summary metrics to MLflow from the Databricks driver | To do |
+| Log summary metrics to MLflow from the Databricks driver | Done — `10_log_models_to_mlflow_registry.ipynb` logs all 42 models (14 regions × 3 quantiles) with metrics + registers in Model Registry |
 
 ### Epic 9 — Cloud Deployment detail (Kafka-first)
 
@@ -230,10 +230,11 @@ Kafka is the contract boundary between all microservices. It must exist before a
 | Evaluate P10/P50/P90 vs baselines using pinball loss | Done |
 | Save model artefacts to `saved_models/YYYY-MM-DD/` | Done |
 | Load latest model artefacts | Done |
-| **Viz:** Forecast uncertainty bands — actuals overlaid on shaded P10/P50/P90 | To do |
-| **Viz:** Pinball loss comparison bar chart — LightGBM vs persistence vs seasonal naive | To do |
-| **Viz:** Quantile calibration plot — % actuals captured within P10–P90 band | To do |
-| **Viz:** SHAP waterfall plots — per-prediction explainability ("why high carbon at 6pm Friday?") | To do |
+| **Viz:** Forecast uncertainty bands — actuals overlaid on shaded P10/P50/P90 | Done |
+| **Viz:** Pinball loss comparison bar chart — LightGBM vs persistence vs seasonal naive | Done |
+| **Viz:** Quantile calibration plot — `calculate_calibration()` logic (`calibration_plot.py`) | Done |
+| **Viz:** Quantile calibration plot — plotting function + pipeline integration | Done |
+| **Viz:** SHAP waterfall plots — per-prediction explainability ("why high carbon at 6pm Friday?") | Done |
 
 ### Epic 6 — EV Behaviour Model detail
 
@@ -392,7 +393,9 @@ A parallel Databricks pipeline was built alongside the local MVP to demonstrate 
 | Silver | `silver_carbon_intensity_regional` | Cleaned, validated, null-flagged carbon intensity data |
 | Silver | `silver_weather_regional` | Upsampled 30-min weather (forward-fill via `applyInPandas`), validation flags |
 | Gold | `gold_carbon_weather_regional` | Joined carbon intensity + weather, lag features (t-1, t-2, t-48, t-336), 7-day rolling averages |
-| Models | `/Volumes/workspace/default/models/` | 14 × 3 quantile LightGBM models trained via `applyInPandas` |
+| Models (nb 04) | `/Volumes/workspace/default/models/` | 14 × 3 quantile LightGBM models (carbon intensity features only) trained via `applyInPandas` |
+| Models (nb 08) | `/Volumes/workspace/default/models/` | 14 × 3 quantile LightGBM models retrained with weather features; pinball loss compared vs nb 04 |
+| Analysis (nb 09) | — | Regional model comparison, P50 pinball loss geoplot, decision quality analysis |
 
 All tables use **MERGE INTO upserts** for idempotent writes — running any notebook twice produces no duplicates.
 

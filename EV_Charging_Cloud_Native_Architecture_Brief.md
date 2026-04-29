@@ -288,6 +288,16 @@ Self-hosting Kafka on UpCloud saves £50–80/month vs GCP Managed Kafka. The Up
 
 ---
 
+## Synthetic Data — Planned Use Cases
+
+1. **UK EV charging session data** — ACN data is US-based. Generate realistic UK sessions with regional skew (more EVs in London/SE), time-of-use patterns (overnight home charging peaks), and seasonal demand variation. Makes the project more authentic for UK energy employers like Kaluza, and feeds directly into the EV Session Ingestor (Service 2) and Fleet Simulation dashboard view.
+
+2. **Model evaluation edge cases** — Generate out-of-distribution scenarios not well-covered by 2025 training data: cold snaps, grid emergencies, overnight charging spikes. Use to test LightGBM model robustness and demonstrate the P10/P90 quantile bounds hold under stress.
+
+3. **Self-contained demo dataset** — A synthetic dataset that tells a compelling story (e.g. demand spike during a cold snap causing a carbon intensity event) for portfolio/demo purposes, without relying on external APIs being live during a demo or interview.
+
+---
+
 ## Relationship to Other Projects
 
 This is deliberately over-engineered for the data volume — that's the point. A single laptop could run this entire pipeline. The cloud-native microservices design demonstrates how you would build this at Kaluza's production scale, not just that you can train a LightGBM model. That framing should be explicit in both the README and any interview discussion.
