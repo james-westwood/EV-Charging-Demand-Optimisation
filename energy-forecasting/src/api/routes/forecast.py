@@ -32,7 +32,7 @@ def forecast(
 
     start = datetime.now(timezone.utc)
 
-    features = generate_inference_features(horizon, start)
+    features = generate_inference_features(horizon, cached_df=http_request.app.state.features, start=start)
 
     models = http_request.app.state.models
     p10_model = models["p10"]

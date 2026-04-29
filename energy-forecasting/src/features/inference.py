@@ -50,15 +50,17 @@ def create_future_grid(timestamps: list[datetime]) -> pd.DataFrame:
 
 def generate_inference_features(
     horizon: int,
+    cached_df: pd.DataFrame | None = None,
     start: datetime | None = None,
 ) -> pd.DataFrame:
     """Generate features for inference.
 
-    Loads cached features (last ~7 days) to compute rolling/lag features
-    for the forecast horizon. Calendar features computed for future timestamps.
+    Uses cached features to compute rolling/lag features for the forecast horizon.
+    Calendar features computed for future timestamps.
 
     Args:
         horizon: Number of 30-min periods to forecast (e.g., 48 = 24 hours)
+        cached_df: Pre-loaded features DataFrame. If None, loads from store.
         start: Start datetime. Defaults to now.
 
     Returns:
@@ -70,7 +72,9 @@ def generate_inference_features(
     timestamps = generate_timestamps(start, horizon)
     future_df = create_future_grid(timestamps)
 
-    cached_df = load_features()
+    if cached_df is None:
+        from src.features.store import load_features as _load
+        cached_df = _load()
 
     n_lookback = min(_LOOKBACK_PERIODS, len(cached_df))
     history = cached_df.tail(n_lookback).copy()
