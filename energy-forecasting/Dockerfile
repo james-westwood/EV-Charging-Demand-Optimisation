@@ -1,12 +1,10 @@
+# Install uv and use it to install deps (simpler than fighting with pip+pyproject.toml)
 FROM python:3.13-slim
+RUN pip install uv
 
-# Copy dependency files first (cached)
 COPY pyproject.toml uv.lock ./
+RUN uv venv .venv && .venv/bin/pip install --upgrade pip && .venv/bin/pip install -e .
 
-# Install dependencies with pip (simpler than uv for Docker)
-RUN pip install --no-cache-dir -r pyproject.toml
-
-# Copy source code
 COPY src/ ./src/
 
 # Non-root user
@@ -16,4 +14,4 @@ USER appuser
 
 EXPOSE ${PORT:-8080}
 
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8080}"]
+CMD [".venv/bin/uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8080}"]
