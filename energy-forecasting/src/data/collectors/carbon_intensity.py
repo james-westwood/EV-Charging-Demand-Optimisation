@@ -1,10 +1,10 @@
 """Carbon intensity data collector for api.carbonintensity.org.uk."""
 
-from datetime import datetime, timezone
-import requests
+from datetime import datetime, timedelta, timezone
+
 import httpx
 import pandas as pd
-from datetime import timedelta
+import requests
 
 from src.logging_config import get_logger
 
@@ -115,7 +115,7 @@ def fetch_regional_carbon_intensity_by_region_in_chunks(from_dt: datetime, to_dt
         chunk_end = chunk_start
         days_remaining -= days_to_fetch
     
-    diary_of_a_cpu.info(f"Fetched %d chunks of carbon intensity data", len(chunks))
+    diary_of_a_cpu.info("Fetched %d chunks of carbon intensity data", len(chunks))
 
     all_rows = []
     for chunk in chunks:
@@ -123,7 +123,7 @@ def fetch_regional_carbon_intensity_by_region_in_chunks(from_dt: datetime, to_dt
 
     df = _rows_into_df(all_rows)
 
-    diary_of_a_cpu.info(f"Fetched %d rows of carbon intensity data for %d regions", len(df), len(df["region_name"].unique()))
+    diary_of_a_cpu.info("Fetched %d rows of carbon intensity data for %d regions", len(df), len(df["region_name"].unique()))
     return df
 
 
