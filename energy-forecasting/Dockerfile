@@ -4,7 +4,7 @@ RUN pip install uv
 
 # Copy dependency files (cached until packages change)
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-interact --offline
+RUN uv sync --frozen --no-dev --offline
 
 # Copy feature store (changes on data collection runs)
 COPY data/features/ ./data/features/
