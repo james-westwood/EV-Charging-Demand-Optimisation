@@ -1,8 +1,9 @@
 FROM python:3.13-slim
 RUN pip install uv
 
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
+COPY pyproject.toml ./
+COPY uv.lock ./
+RUN rm -f uv.lock && uv sync --frozen --no-dev --no-write-lock
 
 COPY src/ ./src/
 
