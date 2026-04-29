@@ -27,12 +27,13 @@ def forecast(
     Returns {timestamp, p10, p50, p90} for each settlement period.
     """
     from src.features.inference import generate_inference_features
+    from src.api.main import get_features_with_ttl
 
     horizon = request.horizon
 
     start = datetime.now(timezone.utc)
 
-    features = generate_inference_features(horizon, cached_df=http_request.app.state.features, start=start)
+    features = generate_inference_features(horizon, cached_df=get_features_with_ttl(http_request.app), start=start)
 
     models = http_request.app.state.models
     p10_model = models["p10"]
