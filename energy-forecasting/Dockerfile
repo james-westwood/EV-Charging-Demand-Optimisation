@@ -1,23 +1,19 @@
-# Install uv first (changes rarely)
-FROM python:3.11-slim as builder
-RUN pip install uv
+FROM python:3.11-slim
 
-# Copy dependency files (cached until packages change)
+# Copy dependency files first (cached)
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --offline
 
-# Copy feature store (changes on data collection runs)
-COPY data/features/ ./data/features/
+# Install dependencies with pip (simpler than uv for Docker)
+RUN pip install --no-cache-dir -r pyproject.toml
 
-# Copy source code (changes most often)
+# Copy source code
 COPY src/ ./src/
 
-# Create non-root user for security
-RUN useradd --create-home --shell /bin/bash appuser
-RUN chown -R appuser:appuser /home/appuser
+# Non-root user
+RUN useradd --create-home --shell /bin/bash appuser && \
+    chown -R appuser:appuser /home/appuser
 USER appuser
 
-# Expose port from Cloud Run env var, fallback to 8080 for local dev
 EXPOSE ${PORT:-8080}
 
-CMD ["uv", "run", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8080}"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8080}"]
