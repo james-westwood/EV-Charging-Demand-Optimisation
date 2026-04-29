@@ -2,7 +2,7 @@
 name = "energy-forecasting"
 version = "0.1.0"
 description = "EV Charging Demand Optimisation — Local ML Pipeline"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "lightgbm>=4.0",
     "duckdb>=0.9",
