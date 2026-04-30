@@ -1,5 +1,5 @@
 """Forecast routes for the FastAPI application."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
@@ -44,11 +44,9 @@ def forecast(
     p50_preds = p50_model.predict(features)
     p90_preds = p90_model.predict(features)
 
-    settlements = features["settlement_period"].tolist() if "settlement_period" in features.columns else None
-
     forecasts = []
     for i in range(horizon):
-        ts = settlements[i] if settlements else start.isoformat()
+        ts = (start + i * timedelta(minutes=30)).isoformat()
         forecasts.append({
             "timestamp": ts,
             "p10": float(p10_preds[i]),

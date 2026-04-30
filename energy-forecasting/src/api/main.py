@@ -6,20 +6,28 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 
 from src.api.cache import get_features_with_ttl
-from src.features.store import load_features
+from src.features.store import load_features, load_features_from_gcs
 from src.models.forecasting.artefacts import load_latest_artefacts, load_latest_artefacts_from_gcs
 
 _MODEL_BUCKET = os.getenv("MODEL_BUCKET", "")
+_FEATURES_BUCKET = os.getenv("FEATURES_BUCKET", "")
 
 
 @asynccontextmanager
-def lifespan(app: FastAPI):
-    """Load models from GCS and features on startup, store in app.state, unload on shutdown."""
+async def lifespan(app: FastAPI):
+    """Load models and features from GCS (if configured) on startup, store in app.state, unload on shutdown."""
+    # Load models
     if _MODEL_BUCKET:
         app.state.models = load_latest_artefacts_from_gcs(_MODEL_BUCKET)
     else:
         app.state.models = load_latest_artefacts()
-    app.state.features = load_features()
+    
+    # Load features
+    if _FEATURES_BUCKET:
+        app.state.features = load_features_from_gcs(_FEATURES_BUCKET)
+    else:
+        app.state.features = load_features()
+    
     app.state.features_loaded_at = datetime.now(timezone.utc)
     yield
     del app.state.models

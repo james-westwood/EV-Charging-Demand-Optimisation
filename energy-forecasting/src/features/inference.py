@@ -80,6 +80,7 @@ def generate_inference_features(
     history = cached_df.tail(n_lookback).copy()
 
     combined = pd.concat([history, future_df], ignore_index=True)
+    combined["settlement_period"] = pd.to_datetime(combined["settlement_period"], utc=True)
 
     combined = add_penetration_features(combined) # amount of wind and solar in the mix, which can be predictive of carbon intensity
     combined = add_rolling_features(combined) # add rolling mean features for carbon intensity and wind_pct, which can help capture recent trends and smooth out noise

@@ -56,7 +56,7 @@ def load_latest_artefacts_from_gcs(bucket_name: str, prefix: str = "saved_models
         raise FileNotFoundError(f"No model directories in gs://{bucket_name}/{prefix}")
 
     latest_date = date_dirs[-1]
-    model_keys = [f"{prefix}{latest_date}/p{q}.joblib" for q in ["p10", "p50", "p90"]]
+    model_keys = [f"{prefix}{latest_date}/{q}.joblib" for q in ["p10", "p50", "p90"]]
 
     with TemporaryDirectory() as tmpdir:
         models = {}
