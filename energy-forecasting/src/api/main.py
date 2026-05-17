@@ -58,7 +58,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS: allow the Netlify frontend and local development
+# CORS: allow production frontend, Cloudflare Pages previews, and local development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -67,6 +67,7 @@ app.add_middleware(
         "http://localhost:4321",
         "http://localhost:3000",
     ],
+    allow_origin_regex=r"https://[a-z0-9-]+\.james-westwood-dev\.pages\.dev",
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
