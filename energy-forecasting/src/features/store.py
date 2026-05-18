@@ -1,10 +1,14 @@
-"""Feature store: write and read feature DataFrames from data/features/."""
+"""Feature store: write and read feature DataFrames from data/features/ or GCS."""
 from __future__ import annotations
 
+import os
+import tempfile
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
+from google.cloud import storage
 
 from src.logging_config import get_logger
 
@@ -60,3 +64,43 @@ def load_features(features_dir: Path | None = None) -> pd.DataFrame:
     df = pd.read_parquet(path, engine="pyarrow")
     logger.info("Loaded %d rows from %s", len(df), path)
     return df
+
+
+def load_features_from_gcs(bucket_name: str, prefix: str = "features/") -> pd.DataFrame:
+    """Load the most recent feature DataFrame from GCS.
+
+    Args:
+        bucket_name: GCS bucket name.
+        prefix: Prefix within the bucket where feature files are stored.
+
+    Returns:
+        DataFrame loaded from the most recent feature file in GCS.
+
+    Raises:
+        FileNotFoundError: If no feature files exist in the bucket/prefix.
+    """
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    
+    # List blobs with the given prefix
+    blobs = list(bucket.list_blobs(prefix=prefix))
+    if not blobs:
+        raise FileNotFoundError(f"No feature files found in gs://{bucket_name}/{prefix}")
+    
+    # Filter to only parquet files and sort by name (lexicographic = chronological for YYYY-MM-DD)
+    parquet_blobs = [b for b in blobs if b.name.endswith(".parquet")]
+    if not parquet_blobs:
+        raise FileNotFoundError(f"No feature files found in gs://{bucket_name}/{prefix}")
+    
+    # Sort by name to get the latest (YYYY-MM-DD format ensures lexicographic = chronological)
+    latest_blob = sorted(parquet_blobs, key=lambda b: b.name)[-1]
+    
+    # Download to a temporary file
+    with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp_file:
+        try:
+            latest_blob.download_to_filename(tmp_file.name)
+            df = pd.read_parquet(tmp_file.name, engine="pyarrow")
+            logger.info("Loaded %d rows from gs://%s/%s", len(df), bucket_name, latest_blob.name)
+            return df
+        finally:
+            os.unlink(tmp_file.name)
