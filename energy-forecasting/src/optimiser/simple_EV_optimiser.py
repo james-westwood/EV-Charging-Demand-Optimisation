@@ -29,4 +29,4 @@ optimal_schedule: dict = {period: charge[period].varValue for period in range(20
 total_carbon = value(x=problem.objective)
 
 
-print(optimal_schedule)
+print({f"{k+8}:{v}kW" for k,v in optimal_schedule.items()})
