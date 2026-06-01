@@ -107,6 +107,19 @@ flowchart TD
 
 ---
 
+## Live API
+
+The forecast API is deployed on Google Cloud Run:
+
+**Endpoint:** [`https://forecast-api-719697349745.europe-west1.run.app/docs`](https://forecast-api-719697349745.europe-west1.run.app/docs)
+
+**Endpoints:**
+- `POST /forecast` — Submit horizon (1–336 periods), get P10/P50/P90 forecasts
+- `GET /forecast` — Query parameter interface for browser/mobile
+- Returns carbon intensity predictions with timestamps, compatible with the optimizer
+
+---
+
 ## Project structure
 
 ```

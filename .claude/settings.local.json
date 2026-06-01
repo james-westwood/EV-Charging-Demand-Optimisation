@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"\nimport json\nwith open\\('prd.json'\\) as f:\n    prd = json.load\\(f\\)\nepic4 = [t for t in prd['tasks'] if t['epic'] == 'EPIC 4 — ML Model Training']\nfor t in epic4:\n    print\\(t['id'] + '|' + t['title'] + '|' + t['description'] + '|' + t['acceptance_criteria']\\)\n\")",
+      "WebFetch(domain:www.datacamp.com)",
+      "WebFetch(domain:www.interviewbit.com)",
+      "WebFetch(domain:www.projectpro.io)",
+      "WebFetch(domain:k21academy.com)",
+      "WebFetch(domain:www.analyticsvidhya.com)",
+      "WebFetch(domain:www.sprintzeal.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(git pull:*)",
+      "mcp__databricks__manage_workspace_files",
+      "Read(//home/james/Programming/personal/james-westwood/**)",
+      "Bash(npm run:*)"
+    ]
+  }
+}
