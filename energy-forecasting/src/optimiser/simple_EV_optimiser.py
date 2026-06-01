@@ -28,5 +28,10 @@ problem.solve()
 optimal_schedule: dict = {period: charge[period].varValue for period in range(20)}
 total_carbon = value(x=problem.objective)
 
+result_dict = {f"{k+8}:{v}kW" for k,v in optimal_schedule.items()}
+print(result_dict)
+if LpStatus[status] == "Optimal":
+    print("✅ Solution is proven optimal")
+else:
+    print("❌ Something went wrong")
 
-print({f"{k+8}:{v}kW" for k,v in optimal_schedule.items()})
