@@ -1,0 +1,15 @@
+{
+      "version": "0.2.0",
+      "configurations": [
+          {
+              "name": "evaluation.py",
+              "type": "debugpy",
+              "request": "launch",
+              "program": "${workspaceFolder}/energy-forecasting/src/models/forecasting/evaluation.py",
+              "cwd": "${workspaceFolder}/energy-forecasting",
+              "console": "integratedTerminal",
+              "justMyCode": true
+          }
+      ]
+}
+

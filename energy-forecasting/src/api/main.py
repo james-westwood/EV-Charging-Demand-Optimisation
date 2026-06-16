@@ -64,8 +64,13 @@ app.add_middleware(
     allow_origins=[
         "https://profound-parfait-d0e282.netlify.app",
         "https://james-westwood.dev",
+        "https://www.james-westwood.dev",
         "http://localhost:4321",
+        "http://localhost:4322",
         "http://localhost:3000",
+        "http://localhost:8080",
+        "http://192.168.68.245:8080",
+        "http://127.0.0.1:8080",
     ],
     allow_origin_regex=r"https://[a-z0-9-]+\.james-westwood-dev\.pages\.dev",
     allow_credentials=True,

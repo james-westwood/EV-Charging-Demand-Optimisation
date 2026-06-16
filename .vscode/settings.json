@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "energy-forecasting"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

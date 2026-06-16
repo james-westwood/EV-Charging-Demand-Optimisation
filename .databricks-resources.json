@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "resources": [
+    {
+      "type": "job",
+      "name": "EV Charging \u2014 Full Pipeline (01\u219209 + MLflow)",
+      "id": "428455848051297",
+      "created_at": "2026-04-24T23:21:48.345351+00:00",
+      "updated_at": "2026-04-24T23:21:48.345351+00:00"
+    }
+  ]
+}
