@@ -31,17 +31,6 @@ def optimise_session(
     9. Call pct_saving() to get savings_pct
     10. Generate slots = list of ISO datetime strings for each period
 
-    RETURN:
-    {
-        "schedule": list of optimal kW per slot (convert numpy array to list),
-        "dumb_schedule": list of baseline kW per slot,
-        "carbon_saving_g": float, gCO2 saved (rounded to 1 decimal),
-        "pct_saving": float, percentage (rounded to 1 decimal),
-        "optimal_carbon": float, total gCO2 for optimal (rounded to 1 decimal),
-        "baseline_carbon": float, total gCO2 for baseline (rounded to 1 decimal),
-        "slots": list[str], ISO timestamps for each 30-min slot
-    }
-
     EDGE CASES TO HANDLE:
     - If departure_time <= plugin_time → raise ValueError
     - If carbon_forecast is shorter than n_slots → raise ValueError
@@ -59,13 +48,22 @@ def optimise_session(
                         of periods until departure.
 
     Returns:
-        Dict with keys: schedule, dumb_schedule, carbon_saving_g, pct_saving,
-        optimal_carbon, baseline_carbon, slots
+        dict: Result dictionary with keys:
+            - schedule (list[float]): Optimal charging power (kW) per 30-min slot.
+            - dumb_schedule (list[float]): Baseline "charge immediately at max"
+              power (kW) per 30-min slot.
+            - carbon_saving_g (float): Total grams of CO₂ saved by the optimal
+              schedule versus the baseline, rounded to 1 decimal.
+            - pct_saving (float): Percentage reduction in CO₂, rounded to 1 decimal.
+            - optimal_carbon (float): Total grams of CO₂ emitted under the optimal
+              schedule, rounded to 1 decimal.
+            - baseline_carbon (float): Total grams of CO₂ emitted under the baseline
+              schedule, rounded to 1 decimal.
+            - slots (list[str]): ISO-format timestamp strings for each 30-min period.
 
     Raises:
         ValueError: If departure_time <= plugin_time or carbon_forecast is too short
     """
-    # TODO: STEP 1 — Validate inputs
     # Validate: Check departure_time > plugin_time
     if departure_time < plugin_time:
         raise ValueError("Departure time must be after plugin time")

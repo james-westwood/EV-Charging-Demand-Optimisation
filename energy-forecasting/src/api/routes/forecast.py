@@ -21,7 +21,28 @@ def _generate_forecasts(
     horizon: int,
     app_state,
 ) -> list[dict]:
-    """Shared forecast generation logic."""
+    """Shared forecast generation logic.
+
+    Args:
+        horizon: Number of 30-minute periods to forecast.
+        app_state: FastAPI application state object (``http_request.app.state``).
+            Holds the loaded models and cached feature data required for inference.
+            Expected attributes:
+                - ``app_state.models`` (dict): Loaded ML models with keys ``"p10"``,
+                  ``"p50"``, ``"p90"`` (e.g. LightGBM Booster instances).
+                - ``app_state.features`` (pd.DataFrame): Cached feature dataframe
+                  used by ``get_features_with_ttl``.
+            If either attribute is ``None``, an HTTP 503 error is raised because
+            the service cannot generate forecasts without them.
+
+    Returns:
+        list[dict]: A list of forecasts, one per 30-minute period.
+            Each dict has keys:
+                - timestamp (str): ISO-format datetime, e.g. "2026-06-02T15:30:00+00:00"
+                - p10 (float): 10th percentile carbon forecast
+                - p50 (float): 50th percentile (median) carbon forecast
+                - p90 (float): 90th percentile carbon forecast
+    """
     from fastapi import HTTPException
     from src.features.inference import generate_inference_features
     from src.api.cache import get_features_with_ttl

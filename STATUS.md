@@ -15,6 +15,7 @@ Primary SDG learning project — directly builds toward ML Engineer roles at ene
 - [x] Complete feature engineering pipeline
 - [x] Set up MLflow experiment tracking
 - [x] Build model serving layer (FastAPI on Cloud Run)
+- [ ] Deploy EV Charging case-study page to Cloudflare Pages (preview ready)
 - [ ] Productionise LP optimiser endpoint
 - [ ] Add session model (GMM)
 
@@ -29,3 +30,8 @@ Primary SDG learning project — directly builds toward ML Engineer roles at ene
 - **Commit:** `0efa095` on `feat/epic7-charging-optimizer`
 - **Status:** API redeployed, live forecast now working in the LP scheduler widget
 - **Widget:** `https://james-westwood.dev/projects/linear-programming-scheduler`
+
+### 2026-06-02 — EV charging case-study page (preview)
+- Portfolio widget page (`/projects/ev-charging`) built in preview on james-westwood.dev — not yet deployed
+- Case-study page includes: animated SVG scene, React widget, architecture flow, stack & source
+- SMIL dot animation restored after CSS experiments failed cross-browser
